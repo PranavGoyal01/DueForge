@@ -1,0 +1,9 @@
+body {
+	background: radial-gradient(circle at 15% -10%, rgb(245 165 36 / 10%), transparent 35%), radial-gradient(circle at 85% -20%, rgb(61 220 151 / 8%), transparent 28%), linear-gradient(180deg, var(--df-bg-1), var(--df-bg-0));
+	color: var(--df-text-0);
+}
+
+.df-grid-bg {
+	background-image: linear-gradient(rgb(167 177 191 / 4%) 1px, transparent 1px), linear-gradient(90deg, rgb(167 177 191 / 4%) 1px, transparent 1px);
+	background-size: 28px 28px;
+}
