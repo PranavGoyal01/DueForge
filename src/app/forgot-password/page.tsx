@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 export default async function ForgotPasswordPage() {
 	const user = await getSessionUser();
 	if (user) {
-		redirect("/");
+		redirect("/today");
 	}
 
 	return (

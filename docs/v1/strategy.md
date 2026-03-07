@@ -36,3 +36,24 @@
 - Dark, focused, execution-oriented interface.
 - Priority and risk are visually explicit.
 - Fast capture and minimum interaction cost are prioritized over customization.
+
+## Current Product State (March 2026)
+
+- Public marketing landing now lives at `/` with clear waitlist and demo CTAs.
+- Authenticated command center lives at `/today`.
+- Commitments page is now data-backed (`/commitments`), not placeholder-only.
+- Demo mode is live at `/demo` and includes a feature request intake form.
+- Feature request intake is wired end-to-end via `/api/feature-requests` with optional email forwarding.
+
+## Architectural Decisions Already Locked
+
+- Prisma uses `DATABASE_URL` (Supabase transaction pooler `:6543`) for runtime traffic.
+- Prisma uses `DIRECT_URL` (Supabase session pooler `:5432`) for schema operations.
+- Shared Zod contracts live in `src/lib/domain/contracts.ts` and are reused in API routes.
+- Core environment validation is centralized in `src/lib/validation/env.ts`.
+
+## Immediate Focus (Next Iterations)
+
+- Replace remaining dashboard placeholders (`/checkins`, `/schedule`, `/settings`) with real data views.
+- Add robust telemetry coverage for activation and execution funnel events.
+- Add recurring drift scans and nudge dispatch to close accountability loops.

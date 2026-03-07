@@ -2,6 +2,7 @@ import { sendEmailVerificationEmail } from "@/lib/account-emails";
 import { createAccountToken } from "@/lib/account-tokens";
 import { createSessionToken, getSessionCookieName, getSessionCookieOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAppEnv } from "@/lib/validation/env";
 import { AccountTokenType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
@@ -15,6 +16,8 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: Request) {
+	getAppEnv();
+
 	const payload = await request.json();
 	const parsed = registerSchema.safeParse(payload);
 

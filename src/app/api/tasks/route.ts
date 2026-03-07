@@ -1,22 +1,8 @@
 import { getSessionUser } from "@/lib/auth";
+import { taskCreateRequestSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
 import { TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const createTaskSchema = z.object({
-	title: z.string().min(1).max(140),
-	details: z.string().max(5000).optional(),
-	priority: z.number().int().min(1).max(3).default(2),
-	dueAt: z.string().datetime().optional(),
-	estimatedMinutes: z
-		.number()
-		.int()
-		.min(5)
-		.max(8 * 60)
-		.optional(),
-	tagNames: z.array(z.string().min(1).max(30)).default([]),
-});
 
 export async function GET() {
 	const user = await getSessionUser();
@@ -44,13 +30,14 @@ export async function POST(request: Request) {
 	}
 
 	const payload = await request.json();
-	const parsed = createTaskSchema.safeParse(payload);
+	const parsed = taskCreateRequestSchema.safeParse(payload);
 
 	if (!parsed.success) {
 		return NextResponse.json({ error: "Invalid task payload", issues: parsed.error.flatten() }, { status: 400 });
 	}
 
 	const { title, details, priority, dueAt, estimatedMinutes, tagNames } = parsed.data;
+	const normalizedTagNames = tagNames.map((name) => name.trim()).filter(Boolean);
 	const normalizedTitle = title.trim().toLowerCase();
 
 	const existingTasks = await prisma.task.findMany({
@@ -91,9 +78,9 @@ export async function POST(request: Request) {
 		},
 	});
 
-	if (tagNames.length > 0) {
+	if (normalizedTagNames.length > 0) {
 		const tags = await Promise.all(
-			tagNames.map((name) =>
+			normalizedTagNames.map((name) =>
 				prisma.tag.upsert({
 					where: {
 						ownerId_name: {

@@ -15,6 +15,10 @@ export const taskDraftSchema = z.object({
 	priority: z.number().int().min(1).max(3).default(2),
 });
 
+export const taskCreateRequestSchema = taskDraftSchema.extend({
+	tagNames: z.array(z.string().trim().min(1).max(30)).max(12).default([]),
+});
+
 export const commitmentCreateSchema = z.object({
 	taskId: z.string().cuid(),
 	committedToId: z.string().cuid().optional(),
@@ -43,7 +47,10 @@ export const nudgeDecisionSchema = z.object({
 	escalateToPartner: z.boolean().default(false),
 });
 
+export const commitmentScopeQuerySchema = z.enum(["today", "week", "at_risk"]).default("week");
+
 export type TaskDraft = z.infer<typeof taskDraftSchema>;
+export type TaskCreateRequest = z.infer<typeof taskCreateRequestSchema>;
 export type CommitmentCreate = z.infer<typeof commitmentCreateSchema>;
 export type CheckInCreate = z.infer<typeof checkInCreateSchema>;
 export type ProofCreate = z.infer<typeof proofCreateSchema>;

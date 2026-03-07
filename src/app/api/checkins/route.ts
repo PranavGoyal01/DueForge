@@ -1,15 +1,11 @@
 import { getSessionUser } from "@/lib/auth";
 import { ensureRelationshipForUser } from "@/lib/bootstrap";
+import { checkInCreateSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
 import { CheckInMode } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
-const checkInSchema = z.object({
-	scheduledAt: z.string().datetime(),
-	mode: z.nativeEnum(CheckInMode).default(CheckInMode.VIDEO),
-	agenda: z.string().max(2000).optional(),
-});
+const checkInRequestSchema = checkInCreateSchema.omit({ relationshipId: true }).extend({ mode: checkInCreateSchema.shape.mode.default(CheckInMode.VIDEO) });
 
 export async function GET() {
 	const user = await getSessionUser();
@@ -53,7 +49,7 @@ export async function POST(request: Request) {
 	}
 
 	const payload = await request.json();
-	const parsed = checkInSchema.safeParse(payload);
+	const parsed = checkInRequestSchema.safeParse(payload);
 
 	if (!parsed.success) {
 		return NextResponse.json({ error: "Invalid check-in payload", issues: parsed.error.flatten() }, { status: 400 });

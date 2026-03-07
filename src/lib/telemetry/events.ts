@@ -6,6 +6,7 @@ export const telemetryEvents = {
 	CHECKIN_SCHEDULED: "checkin.scheduled",
 	SCHEDULE_APPLIED: "schedule.applied",
 	NUDGE_SENT: "nudge.sent",
+	FEATURE_REQUESTED: "feature.requested",
 } as const;
 
 export type TelemetryEvent = (typeof telemetryEvents)[keyof typeof telemetryEvents];

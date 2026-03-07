@@ -1,14 +1,10 @@
 import { getSessionUser } from "@/lib/auth";
+import { proofCreateSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
-import { CommitmentStatus, ProofType, TaskStatus } from "@prisma/client";
+import { CommitmentStatus, TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
-const proofSchema = z.object({
-	type: z.nativeEnum(ProofType).default(ProofType.TEXT),
-	content: z.string().min(1).max(5000),
-	markCompleted: z.boolean().default(false),
-});
+const proofRequestSchema = proofCreateSchema.omit({ commitmentId: true });
 
 type RouteContext = {
 	params: Promise<{ id: string }>;
@@ -22,7 +18,7 @@ export async function POST(request: Request, context: RouteContext) {
 
 	const { id } = await context.params;
 	const payload = await request.json();
-	const parsed = proofSchema.safeParse(payload);
+	const parsed = proofRequestSchema.safeParse(payload);
 
 	if (!parsed.success) {
 		return NextResponse.json({ error: "Invalid proof payload", issues: parsed.error.flatten() }, { status: 400 });

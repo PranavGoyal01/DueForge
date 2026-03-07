@@ -1,10 +1,11 @@
+import { getAppEnv } from "@/lib/validation/env";
 import nodemailer from "nodemailer";
 
 const smtpHost = process.env.SMTP_HOST;
 const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
-const fromEmail = process.env.SMTP_FROM_EMAIL ?? "no-reply@dueforge.local";
+const fromEmail = getAppEnv().SMTP_FROM_EMAIL;
 
 function isMailerConfigured() {
 	return Boolean(smtpHost && smtpUser && smtpPass);
@@ -42,5 +43,5 @@ export async function sendTransactionalEmail(input: { to: string; subject: strin
 }
 
 export function getAppBaseUrl() {
-	return process.env.APP_BASE_URL ?? "http://localhost:3000";
+	return getAppEnv().APP_BASE_URL;
 }

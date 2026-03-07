@@ -15,6 +15,15 @@ Execution-first accountability platform focused on follow-through, commitments, 
 - Local auth (`bcryptjs` + JWT session cookie)
 - Google Calendar OAuth (connect + callback + token persistence)
 
+## Where To Start (New Conversation / New Contributor)
+
+Read these in order:
+
+1. `docs/v1/handoff.md`
+2. `docs/v1/backlog.md`
+3. `docs/v1/implementation-plan.md`
+4. `docs/v1/vercel-supabase-setup.md`
+
 ## Local setup
 
 1. Install dependencies:
@@ -35,6 +44,7 @@ SMTP_PORT="587"
 SMTP_USER=""
 SMTP_PASS=""
 SMTP_FROM_EMAIL="no-reply@dueforge.local"
+FEATURE_REQUEST_RECIPIENT=""
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 GOOGLE_REDIRECT_URI="http://localhost:3000/api/integrations/google/callback"
@@ -84,9 +94,18 @@ npm run dev
 
 - Visit `/login` to register or sign in.
 - Session is stored in an HTTP-only cookie.
-- Dashboard redirects to `/login` when unauthenticated.
+- Authenticated product entry is `/today`.
+- Protected dashboard routes redirect to `/login` when unauthenticated.
 - Registration sends an account verification email (`/api/auth/verify-email`).
 - Forgot password starts at `/forgot-password`; reset completes at `/reset-password`.
+
+## Route map
+
+- Public landing: `/`
+- Live demo mode: `/demo`
+- Auth entry: `/login`
+- Authenticated command center: `/today`
+- Commitments hub: `/commitments`
 
 ### Email delivery
 
@@ -105,10 +124,16 @@ Then populate `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
 
 ### Trigger connection
 
-- Open dashboard (`/`)
+- Open dashboard (`/today`)
 - Click **Connect Google Calendar**
 - Complete Google consent screen
 - Callback stores tokens in `CalendarConnection.tokensRef`, sets `syncState=connected`, and auto-creates a dedicated calendar
+
+## Feature request intake
+
+- Demo page (`/demo`) includes a **Request a Feature** form.
+- Submissions are accepted by `POST /api/feature-requests`.
+- If `FEATURE_REQUEST_RECIPIENT` is set, submissions are forwarded by email.
 
 ### Dedicated calendar behavior
 
@@ -146,6 +171,7 @@ Then populate `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
 
 - OpenAPI JSON: `/api/openapi.json`
 - Health check: `/api/health`
+- Feature requests endpoint: `/api/feature-requests`
 
 ## Validation
 

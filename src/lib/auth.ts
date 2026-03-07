@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAppEnv } from "@/lib/validation/env";
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
@@ -6,7 +7,7 @@ const SESSION_COOKIE = "dueforge_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 function getSessionSecret() {
-	const secret = process.env.AUTH_SECRET ?? "dueforge-dev-secret-change-me";
+	const { AUTH_SECRET: secret } = getAppEnv();
 	return new TextEncoder().encode(secret);
 }
 

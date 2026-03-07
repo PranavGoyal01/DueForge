@@ -1,9 +1,12 @@
+import { getAppEnv } from "@/lib/validation/env";
+
 export const GOOGLE_OAUTH_STATE_COOKIE = "dueforge_google_oauth_state";
 
 export function getGoogleOauthConfig() {
-	const clientId = process.env.GOOGLE_CLIENT_ID;
-	const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-	const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+	const env = getAppEnv();
+	const clientId = env.GOOGLE_CLIENT_ID;
+	const clientSecret = env.GOOGLE_CLIENT_SECRET;
+	const redirectUri = env.GOOGLE_REDIRECT_URI;
 
 	return {
 		clientId,

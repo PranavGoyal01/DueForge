@@ -5,7 +5,14 @@ import { useState } from "react";
 type Mode = "login" | "register";
 
 export function AuthPanel() {
-	const [mode, setMode] = useState<Mode>("login");
+	const [mode, setMode] = useState<Mode>(() => {
+		if (typeof window === "undefined") {
+			return "login";
+		}
+
+		const urlMode = new URLSearchParams(window.location.search).get("mode");
+		return urlMode === "register" ? "register" : "login";
+	});
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -14,13 +21,19 @@ export function AuthPanel() {
 			return null;
 		}
 
-		const verified = new URLSearchParams(window.location.search).get("verified");
+		const params = new URLSearchParams(window.location.search);
+		const verified = params.get("verified");
+		const source = params.get("source");
 		if (verified === "success") {
 			return "Email verified. You can log in now.";
 		}
 
 		if (verified === "invalid" || verified === "missing") {
 			return "Verification link is invalid or expired.";
+		}
+
+		if (source === "landing_header" || source === "landing_hero" || source === "demo") {
+			return "You are joining early access. Create your account to enter the waitlist.";
 		}
 
 		return null;
@@ -48,7 +61,7 @@ export function AuthPanel() {
 		}
 
 		setMessage("Authenticated. Redirecting...");
-		window.location.href = "/";
+		window.location.href = "/today";
 	};
 
 	return (

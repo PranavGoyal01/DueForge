@@ -1,4 +1,5 @@
 import { getSessionUser } from "@/lib/auth";
+import { commitmentScopeQuerySchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
 	}
 
 	const url = new URL(request.url);
-	const scope = url.searchParams.get("scope") ?? "week";
+	const scope = commitmentScopeQuerySchema.parse(url.searchParams.get("scope") ?? "week");
 	const { now, weekAhead } = getDateBoundaries();
 
 	const whereByScope =

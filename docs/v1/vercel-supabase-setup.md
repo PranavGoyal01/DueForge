@@ -55,7 +55,10 @@ SMTP_PORT="587"
 SMTP_USER="<brevo-user>"
 SMTP_PASS="<brevo-password>"
 SMTP_FROM_EMAIL="<verified-sender@yourdomain.com>"
+FEATURE_REQUEST_RECIPIENT="<your-inbox@yourdomain.com>"
 ```
+
+`FEATURE_REQUEST_RECIPIENT` is optional and routes demo feature requests to your email when set.
 
 ## 4. Configure Google OAuth
 
@@ -94,12 +97,23 @@ GOOGLE_REDIRECT_URI="https://<your-domain>/api/integrations/google/callback"
 ## 6. Post-Deploy Checks
 
 - Open `/api/health` and verify success.
+- Open `/` and confirm hero landing loads correctly.
+- Open `/demo` and submit a feature request form entry.
 - Register a test user and verify email delivery.
 - Connect Google Calendar and run suggest/apply schedule once.
-- Create a task, commit it, and submit proof.
+- Login and confirm authenticated app routes to `/today`.
+- Open `/commitments` and submit proof on at least one commitment.
 
 ## 7. Recommended Next Hardening
 
 - Add Vercel cron for drift scan and reminder jobs.
 - Add Sentry (or equivalent) for production exception monitoring.
 - Add `npm run db:migrate:deploy` to deployment workflow when you start migrations.
+
+## 8. Current Production Route Map
+
+- Public landing: `/`
+- Live demo mode: `/demo`
+- Auth entry: `/login`
+- Authenticated command center: `/today`
+- Authenticated commitments hub: `/commitments`
