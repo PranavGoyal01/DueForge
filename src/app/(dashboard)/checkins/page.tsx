@@ -132,9 +132,7 @@ export default async function CheckInsPage() {
 												<p className='mt-1 text-xs df-subtle'>{item.mode.replace("_", " ")}</p>
 												{item.agenda ? <p className='mt-1 text-xs df-subtle'>Agenda: {item.agenda}</p> : null}
 											</div>
-											<span className={`rounded-full border px-2 py-0.5 text-[11px] ${hasOutcome ? "border-emerald-600/50 text-emerald-300" : "border-amber-600/50 text-amber-300"}`}>
-												{hasOutcome ? "Outcome Logged" : "No Outcome Logged"}
-											</span>
+											<span className={`rounded-full border px-2 py-0.5 text-[11px] ${hasOutcome ? "border-emerald-600/50 text-emerald-300" : "border-amber-600/50 text-amber-300"}`}>{hasOutcome ? "Outcome Logged" : "No Outcome Logged"}</span>
 										</div>
 										{hasOutcome ? <p className='mt-2 text-xs text-white/85'>Outcome: {item.outcome}</p> : <p className='mt-2 text-xs text-amber-200/90'>No recorded outcome. This check-in did not close the loop.</p>}
 									</article>
