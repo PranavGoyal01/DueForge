@@ -12,6 +12,7 @@ Last updated: 2026-03-07
 - Schedule page is data-backed at `/schedule` with apply diagnostics.
 - Settings diagnostics page is live at `/settings`.
 - Manual operations controls are available in `/settings` for drift scan + nudge dispatch.
+- Vercel cron schedule is configured via `vercel.json` for drift scan + nudge dispatch.
 - Feature request intake is live at `/api/feature-requests` and can forward to `FEATURE_REQUEST_RECIPIENT`.
 
 ## Critical Configuration Decisions
@@ -25,6 +26,7 @@ Last updated: 2026-03-07
 - `DATABASE_URL`
 - `DIRECT_URL`
 - `AUTH_SECRET`
+- `CRON_SECRET`
 - `APP_BASE_URL`
 - `SMTP_HOST`
 - `SMTP_PORT`
@@ -48,10 +50,11 @@ Last updated: 2026-03-07
 - Schedule page upgraded from placeholder to real planner + applied-block diagnostics.
 - Settings page upgraded from placeholder to user-testing diagnostics checklist.
 - Drift-scan + nudge-dispatch API jobs are live (`/api/jobs/drift-scan`, `/api/jobs/nudges/dispatch`).
+- Job routes accept secure cron bearer auth (`CRON_SECRET`) and support Vercel cron GET invocations.
 
 ## Highest-Priority Next Work
 
-1. Add recurring production scheduler (cron) to trigger drift scan and nudge dispatch automatically.
+1. Validate cron behavior in production logs and tune cadence based on nudge volume.
 2. Capture schedule apply failures with per-block status visibility for easier debugging.
 3. Add structured check-in outcome capture/edit flow (not just schedule).
 4. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).

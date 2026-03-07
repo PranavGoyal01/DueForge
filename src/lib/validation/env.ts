@@ -7,6 +7,7 @@ const appEnvSchema = z.object({
 	DIRECT_URL: z.string().min(1).optional(),
 	SMTP_FROM_EMAIL: z.string().email(),
 	FEATURE_REQUEST_RECIPIENT: z.string().email().optional(),
+	CRON_SECRET: z.string().min(16).optional(),
 	GOOGLE_CLIENT_ID: z.string().optional(),
 	GOOGLE_CLIENT_SECRET: z.string().optional(),
 	GOOGLE_REDIRECT_URI: z.string().url().optional(),

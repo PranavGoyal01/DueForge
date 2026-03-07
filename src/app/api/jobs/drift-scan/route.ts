@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/lib/auth";
+import { authorizeJobRequest } from "@/lib/job-auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -6,9 +6,9 @@ const LOOKBACK_HOURS = 12;
 const HORIZON_HOURS = 24;
 const DUPLICATE_WINDOW_HOURS = 12;
 
-export async function POST() {
-	const user = await getSessionUser();
-	if (!user) {
+async function runDriftScan(request: Request) {
+	const auth = await authorizeJobRequest(request);
+	if (!auth) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
@@ -19,7 +19,6 @@ export async function POST() {
 
 	const atRiskCommitments = await prisma.commitment.findMany({
 		where: {
-			committedById: user.id,
 			status: "COMMITTED",
 			dueAt: {
 				gte: lookback,
@@ -28,6 +27,7 @@ export async function POST() {
 			proofs: {
 				none: {},
 			},
+			...(auth.mode === "user" ? { committedById: auth.user.id } : {}),
 		},
 		include: {
 			task: {
@@ -35,20 +35,29 @@ export async function POST() {
 					title: true,
 				},
 			},
+			committedBy: {
+				select: {
+					id: true,
+				},
+			},
 		},
 		orderBy: {
 			dueAt: "asc",
 		},
-		take: 50,
+		take: auth.mode === "user" ? 50 : 400,
 	});
 
 	let queuedInApp = 0;
 	let queuedEmail = 0;
+	const touchedUsers = new Set<string>();
 
 	for (const commitment of atRiskCommitments) {
+		const userId = commitment.committedBy.id;
+		touchedUsers.add(userId);
+
 		const existingInApp = await prisma.reminder.findFirst({
 			where: {
-				userId: user.id,
+				userId,
 				entityType: "commitment",
 				entityId: commitment.id,
 				channel: "IN_APP",
@@ -64,7 +73,7 @@ export async function POST() {
 		if (!existingInApp) {
 			await prisma.reminder.create({
 				data: {
-					userId: user.id,
+					userId,
 					entityType: "commitment",
 					entityId: commitment.id,
 					channel: "IN_APP",
@@ -76,7 +85,7 @@ export async function POST() {
 
 		const existingEmail = await prisma.reminder.findFirst({
 			where: {
-				userId: user.id,
+				userId,
 				entityType: "commitment",
 				entityId: commitment.id,
 				channel: "EMAIL",
@@ -92,7 +101,7 @@ export async function POST() {
 		if (!existingEmail) {
 			await prisma.reminder.create({
 				data: {
-					userId: user.id,
+					userId,
 					entityType: "commitment",
 					entityId: commitment.id,
 					channel: "EMAIL",
@@ -104,7 +113,7 @@ export async function POST() {
 
 		await prisma.activityEvent.create({
 			data: {
-				actorId: user.id,
+				actorId: userId,
 				entityType: "commitment",
 				entityId: commitment.id,
 				eventType: "nudge.queued",
@@ -117,9 +126,19 @@ export async function POST() {
 	}
 
 	return NextResponse.json({
+		mode: auth.mode,
 		queued: queuedInApp + queuedEmail,
 		queuedInApp,
 		queuedEmail,
 		atRiskCommitments: atRiskCommitments.length,
+		affectedUsers: touchedUsers.size,
 	});
+}
+
+export async function GET(request: Request) {
+	return runDriftScan(request);
+}
+
+export async function POST(request: Request) {
+	return runDriftScan(request);
 }

@@ -55,6 +55,7 @@ export default async function SettingsPage() {
 		authSecret: (process.env.AUTH_SECRET ?? "").length >= 24,
 		databaseUrl: Boolean(process.env.DATABASE_URL),
 		directUrl: Boolean(process.env.DIRECT_URL),
+		cronSecret: (process.env.CRON_SECRET ?? "").length >= 16,
 		smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM_EMAIL),
 		googleOauth: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI),
 		featureRequestRecipient: Boolean(process.env.FEATURE_REQUEST_RECIPIENT),
@@ -115,6 +116,7 @@ export default async function SettingsPage() {
 						<p className='df-card px-3 py-2 text-xs text-white'>AUTH_SECRET strong: {envChecks.authSecret ? "Yes" : "No"}</p>
 						<p className='df-card px-3 py-2 text-xs text-white'>DATABASE_URL set: {envChecks.databaseUrl ? "Yes" : "No"}</p>
 						<p className='df-card px-3 py-2 text-xs text-white'>DIRECT_URL set: {envChecks.directUrl ? "Yes" : "No"}</p>
+						<p className='df-card px-3 py-2 text-xs text-white'>CRON_SECRET configured: {envChecks.cronSecret ? "Yes" : "No"}</p>
 						<p className='df-card px-3 py-2 text-xs text-white'>SMTP configured: {envChecks.smtp ? "Yes" : "No"}</p>
 						<p className='df-card px-3 py-2 text-xs text-white'>Google OAuth configured: {envChecks.googleOauth ? "Yes" : "No"}</p>
 						<p className='df-card px-3 py-2 text-xs text-white'>Feature request inbox set: {envChecks.featureRequestRecipient ? "Yes" : "No"}</p>

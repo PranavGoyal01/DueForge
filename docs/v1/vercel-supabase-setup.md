@@ -94,7 +94,40 @@ GOOGLE_REDIRECT_URI="https://<your-domain>/api/integrations/google/callback"
 
 1. Deploy.
 
-## 6. Post-Deploy Checks
+## 6. Configure Vercel Cron (Secure)
+
+DueForge includes `vercel.json` cron entries:
+
+- `*/30 * * * *` -> `GET /api/jobs/drift-scan`
+- `*/15 * * * *` -> `GET /api/jobs/nudges/dispatch`
+
+Security requirements:
+
+- Set `CRON_SECRET` in Vercel Environment Variables (Production).
+- Vercel sends this as `Authorization: Bearer <CRON_SECRET>`.
+- Job routes reject unauthenticated requests unless there is a valid session cookie (manual run from `/settings`) or valid cron bearer token.
+- Job routes support both `GET` (cron) and `POST` (manual/API trigger).
+
+Recommended values:
+
+```dotenv
+CRON_SECRET="<32+ char random secret>"
+```
+
+Local cron verification from terminal:
+
+```bash
+curl -i http://localhost:3000/api/jobs/drift-scan
+curl -i -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/jobs/drift-scan
+curl -i -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/jobs/nudges/dispatch
+```
+
+Expected behavior:
+
+- No auth header -> `401 Unauthorized`
+- Valid bearer token -> `200` JSON payload
+
+## 7. Post-Deploy Checks
 
 - Open `/api/health` and verify success.
 - Open `/` and confirm hero landing loads correctly.
@@ -103,14 +136,30 @@ GOOGLE_REDIRECT_URI="https://<your-domain>/api/integrations/google/callback"
 - Connect Google Calendar and run suggest/apply schedule once.
 - Login and confirm authenticated app routes to `/today`.
 - Open `/commitments` and submit proof on at least one commitment.
+- Open `/settings` and confirm environment checklist shows `CRON_SECRET configured: Yes`.
+- In `/settings`, run `Run Drift Scan`, then `Dispatch Nudges`, and confirm non-error responses.
+
+## 8. Deployment Security + Sanity Checklist
+
+- `AUTH_SECRET` is long/random and never checked into git.
+- `CRON_SECRET` is set in Vercel and not reused from other services.
+- `DATABASE_URL` uses Supabase pooler `:6543` for runtime.
+- `DIRECT_URL` uses Supabase pooler `:5432` for Prisma schema operations.
+- `APP_BASE_URL` and `GOOGLE_REDIRECT_URI` exactly match production domain.
+- SMTP sender domain is verified and `SMTP_FROM_EMAIL` matches that domain.
+- At least one protected dashboard route (`/today`) redirects to `/login` when signed out.
+- `/api/health` responds `ok: true`.
+- `npm run build` succeeds on the deployment branch before release.
+- `npm run deploy:check` passes against your target deployment base URL.
 
 ## 7. Recommended Next Hardening
 
-- Add Vercel cron for drift scan and reminder jobs.
+## 9. Recommended Next Hardening
+
 - Add Sentry (or equivalent) for production exception monitoring.
 - Add `npm run db:migrate:deploy` to deployment workflow when you start migrations.
 
-## 8. Current Production Route Map
+## 10. Current Production Route Map
 
 - Public landing: `/`
 - Live demo mode: `/demo`

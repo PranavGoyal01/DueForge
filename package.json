@@ -12,7 +12,8 @@
 		"db:migrate": "prisma migrate dev",
 		"db:migrate:deploy": "prisma migrate deploy",
 		"db:bootstrap-sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
-		"db:studio": "prisma studio"
+		"db:studio": "prisma studio",
+		"deploy:check": "node scripts/deploy-check.mjs"
 	},
 	"dependencies": {
 		"@prisma/client": "^6.19.0",
