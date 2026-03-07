@@ -158,12 +158,26 @@ Expected behavior:
 - `npm run build` succeeds on the deployment branch before release.
 - `npm run deploy:check` passes against your target deployment base URL.
 
-## 9. Recommended Next Hardening
+## 9. Add Vercel Deployment Checks
+
+DueForge includes GitHub Actions CI workflow at `.github/workflows/ci.yml` with one required status job:
+
+- `build-and-lint` (runs `npm ci`, `npm run lint`, `npm run build`)
+
+To enforce in Vercel:
+
+1. Push the workflow to GitHub default branch.
+2. Open Vercel Project -> Settings -> Deployments -> Deployment Checks.
+3. Click `Add Checks` and select GitHub as provider.
+4. Select the CI status check for the workflow job (`CI / build-and-lint`).
+5. Save. Vercel will block promotion until this check is green.
+
+## 10. Recommended Next Hardening
 
 - Add Sentry (or equivalent) for production exception monitoring.
 - Add `npm run db:migrate:deploy` to deployment workflow when you start migrations.
 
-## 10. Current Production Route Map
+## 11. Current Production Route Map
 
 - Public landing: `/`
 - Live demo mode: `/demo`
