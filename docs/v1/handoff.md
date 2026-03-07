@@ -13,6 +13,7 @@ Last updated: 2026-03-07
 - Settings diagnostics page is live at `/settings`.
 - Manual operations controls are available in `/settings` for drift scan + nudge dispatch.
 - Vercel cron schedule is configured via `vercel.json` for drift scan + nudge dispatch.
+- Cron cadence is Hobby-safe daily execution (`0 1 * * *` drift scan, `0 3 * * *` dispatch).
 - Feature request intake is live at `/api/feature-requests` and can forward to `FEATURE_REQUEST_RECIPIENT`.
 
 ## Critical Configuration Decisions
@@ -54,7 +55,7 @@ Last updated: 2026-03-07
 
 ## Highest-Priority Next Work
 
-1. Validate cron behavior in production logs and tune cadence based on nudge volume.
+1. Validate daily Hobby cron behavior in production logs and tune times as needed.
 2. Capture schedule apply failures with per-block status visibility for easier debugging.
 3. Add structured check-in outcome capture/edit flow (not just schedule).
 4. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).

@@ -2,11 +2,11 @@
 	"crons": [
 		{
 			"path": "/api/jobs/drift-scan",
-			"schedule": "*/30 * * * *"
+			"schedule": "0 1 * * *"
 		},
 		{
 			"path": "/api/jobs/nudges/dispatch",
-			"schedule": "*/15 * * * *"
+			"schedule": "0 3 * * *"
 		}
 	]
 }

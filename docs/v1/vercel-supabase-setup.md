@@ -98,8 +98,14 @@ GOOGLE_REDIRECT_URI="https://<your-domain>/api/integrations/google/callback"
 
 DueForge includes `vercel.json` cron entries:
 
-- `*/30 * * * *` -> `GET /api/jobs/drift-scan`
-- `*/15 * * * *` -> `GET /api/jobs/nudges/dispatch`
+- `0 1 * * *` -> `GET /api/jobs/drift-scan`
+- `0 3 * * *` -> `GET /api/jobs/nudges/dispatch`
+
+Hobby plan compatibility:
+
+- Vercel Hobby only allows cron schedules that run once per day.
+- DueForge uses two daily jobs spaced two hours apart to preserve execution order (scan first, dispatch second) even with Hobby timing drift.
+- Hobby timing is hourly precision; execution may happen up to 59 minutes after the scheduled minute.
 
 Security requirements:
 
@@ -151,8 +157,6 @@ Expected behavior:
 - `/api/health` responds `ok: true`.
 - `npm run build` succeeds on the deployment branch before release.
 - `npm run deploy:check` passes against your target deployment base URL.
-
-## 7. Recommended Next Hardening
 
 ## 9. Recommended Next Hardening
 
