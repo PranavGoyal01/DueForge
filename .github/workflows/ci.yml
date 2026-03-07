@@ -43,8 +43,7 @@ jobs:
             - name: Build
               run: npm run build
 
-            - name: Notify Vercel (quality-gate)
-              if: always()
-              uses: vercel/repository-dispatch/actions/status@v1
+            - name: 'notify vercel'
+              uses: 'vercel/repository-dispatch/actions/status@v1'
               with:
                   name: "Vercel - dueforge: quality-gate"
