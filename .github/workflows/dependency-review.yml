@@ -5,7 +5,7 @@ on:
         branches: [main]
 
 permissions:
-    contents: read
+    contents: write
 
 jobs:
     dependency-review:
@@ -16,3 +16,9 @@ jobs:
 
             - name: Dependency Review
               uses: actions/dependency-review-action@v4
+
+            - name: Notify Vercel (dependency-review)
+              if: always()
+              uses: vercel/repository-dispatch/actions/status@v1
+              with:
+                  name: "Vercel - dueforge: dependency-review"

@@ -6,6 +6,9 @@ on:
     push:
         branches: [main]
 
+permissions:
+    contents: write
+
 jobs:
     quality-gate:
         runs-on: ubuntu-latest
@@ -39,3 +42,9 @@ jobs:
 
             - name: Build
               run: npm run build
+
+            - name: Notify Vercel (quality-gate)
+              if: always()
+              uses: vercel/repository-dispatch/actions/status@v1
+              with:
+                  name: "Vercel - dueforge: quality-gate"

@@ -170,6 +170,11 @@ Notes:
 - The workflow defines non-secret placeholder env vars at job level so `next build` and Prisma client generation pass during CI.
 - Keep real production secrets only in Vercel (and optionally GitHub Secrets for workflows that actually need live credentials).
 
+Workflow-to-Vercel status names emitted by GitHub Actions:
+
+- `Vercel - dueforge: quality-gate`
+- `Vercel - dueforge: dependency-review`
+
 Optional additional PR guard:
 
 - `.github/workflows/dependency-review.yml` blocks known-vulnerable or risky dependency changes on pull requests.
@@ -179,7 +184,9 @@ To enforce in Vercel:
 1. Push the workflow to GitHub default branch.
 2. Open Vercel Project -> Settings -> Deployments -> Deployment Checks.
 3. Click `Add Checks` and select GitHub as provider.
-4. Select the CI status check for the workflow job (`CI / quality-gate`).
+4. Select the checks you want to gate production promotion with.
+   Recommended minimum: `CI / quality-gate`.
+   Optional hardening: also require `Dependency Review / dependency-review` and/or `Vercel - dueforge: dependency-review`.
 5. Save. Vercel will block promotion until this check is green.
 
 ## 10. Recommended Next Hardening
