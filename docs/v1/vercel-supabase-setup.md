@@ -164,6 +164,12 @@ DueForge includes GitHub Actions CI workflow at `.github/workflows/ci.yml` with 
 
 - `quality-gate` (runs `npm ci`, `npm run lint`, `npm run typecheck`, `npm run db:generate`, `npm run build`)
 
+Notes:
+
+- Vercel project env vars are not available inside GitHub Actions.
+- The workflow defines non-secret placeholder env vars at job level so `next build` and Prisma client generation pass during CI.
+- Keep real production secrets only in Vercel (and optionally GitHub Secrets for workflows that actually need live credentials).
+
 Optional additional PR guard:
 
 - `.github/workflows/dependency-review.yml` blocks known-vulnerable or risky dependency changes on pull requests.
