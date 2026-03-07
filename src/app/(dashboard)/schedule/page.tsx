@@ -18,7 +18,8 @@ export default async function SchedulePage() {
 		redirect("/login");
 	}
 
-	const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+	const now = new Date();
+	const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 	const [tasks, recentLinks, appliedEventsLastWeek, googleConnection] = await Promise.all([
 		prisma.task.findMany({

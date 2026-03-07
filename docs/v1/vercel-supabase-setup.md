@@ -162,14 +162,18 @@ Expected behavior:
 
 DueForge includes GitHub Actions CI workflow at `.github/workflows/ci.yml` with one required status job:
 
-- `build-and-lint` (runs `npm ci`, `npm run lint`, `npm run build`)
+- `quality-gate` (runs `npm ci`, `npm run lint`, `npm run typecheck`, `npm run db:generate`, `npm run build`)
+
+Optional additional PR guard:
+
+- `.github/workflows/dependency-review.yml` blocks known-vulnerable or risky dependency changes on pull requests.
 
 To enforce in Vercel:
 
 1. Push the workflow to GitHub default branch.
 2. Open Vercel Project -> Settings -> Deployments -> Deployment Checks.
 3. Click `Add Checks` and select GitHub as provider.
-4. Select the CI status check for the workflow job (`CI / build-and-lint`).
+4. Select the CI status check for the workflow job (`CI / quality-gate`).
 5. Save. Vercel will block promotion until this check is green.
 
 ## 10. Recommended Next Hardening
