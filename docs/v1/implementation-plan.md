@@ -20,13 +20,13 @@
 - Settings page upgraded from placeholder to diagnostics + manual ops controls.
 - Drift-scan and nudge-dispatch jobs shipped with cron-safe route auth.
 - Dashboard UI migrated to shadcn-style shared components (`MetricCard`, `SectionHeader`, core forms/panels).
--   Structured check-in outcome capture/edit shipped on `/checkins` history with authenticated `PATCH /api/checkins/[id]`.
+- Structured check-in outcome capture/edit shipped on `/checkins` history with authenticated `PATCH /api/checkins/[id]`.
 
 ## Active Slices
 
 - `schedule`: persist per-block apply failures and expose retry/debug surfaces.
 - `telemetry`: instrument activation, check-in completion, and nudge response funnel events.
--   `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
+- `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
 
 ## Proposed Folder Topology
 
@@ -67,7 +67,7 @@ src/
 - Keep API contracts explicit with shared schemas.
 - Prefer additive changes that do not disrupt existing stable flows.
 - Ship thin vertical slices and validate behavior with real users weekly.
--   Track drift early: no silent failure paths in reminders, commitments, or proofs.
+- Track drift early: no silent failure paths in reminders, commitments, or proofs.
 
 ## Cold-Start Checklist For New Contributor Session
 

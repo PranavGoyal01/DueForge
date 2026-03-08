@@ -134,25 +134,13 @@ export function CheckInHistoryPanel({ initialItems }: CheckInHistoryPanelProps) 
 												<label htmlFor={`outcome-${item.id}`} className='text-xs text-muted-foreground'>
 													Outcome
 												</label>
-												<Textarea
-													id={`outcome-${item.id}`}
-													value={draftOutcome}
-													onChange={(event) => setDraftOutcome(event.target.value)}
-													className='min-h-20'
-													placeholder='What happened in the check-in?'
-												/>
+												<Textarea id={`outcome-${item.id}`} value={draftOutcome} onChange={(event) => setDraftOutcome(event.target.value)} className='min-h-20' placeholder='What happened in the check-in?' />
 											</div>
 											<div className='space-y-1'>
 												<label htmlFor={`next-commitments-${item.id}`} className='text-xs text-muted-foreground'>
 													Next commitments (optional)
 												</label>
-												<Textarea
-													id={`next-commitments-${item.id}`}
-													value={draftNextCommitments}
-													onChange={(event) => setDraftNextCommitments(event.target.value)}
-													className='min-h-16'
-													placeholder='List specific follow-up actions before the next session.'
-												/>
+												<Textarea id={`next-commitments-${item.id}`} value={draftNextCommitments} onChange={(event) => setDraftNextCommitments(event.target.value)} className='min-h-16' placeholder='List specific follow-up actions before the next session.' />
 											</div>
 											<div className='flex items-center gap-2'>
 												<Button type='button' size='sm' onClick={() => save(item.id)} disabled={isSaving}>

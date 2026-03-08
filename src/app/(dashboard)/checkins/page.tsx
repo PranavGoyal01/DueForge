@@ -1,5 +1,5 @@
-import { CheckInPanel } from "@/components/CheckInPanel";
 import { CheckInHistoryPanel } from "@/components/CheckInHistoryPanel";
+import { CheckInPanel } from "@/components/CheckInPanel";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";

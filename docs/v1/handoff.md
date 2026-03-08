@@ -77,7 +77,7 @@ Last updated: 2026-03-08
 - Shared dashboard building blocks added:
     - `src/components/dashboard/MetricCard.tsx`
     - `src/components/dashboard/SectionHeader.tsx`
--   Structured check-in outcome capture/edit shipped via `src/components/CheckInHistoryPanel.tsx`, `src/app/api/checkins/[id]/route.ts`, `src/lib/domain/contracts.ts`, and `src/app/(dashboard)/checkins/page.tsx`.
+- Structured check-in outcome capture/edit shipped via `src/components/CheckInHistoryPanel.tsx`, `src/app/api/checkins/[id]/route.ts`, `src/lib/domain/contracts.ts`, and `src/app/(dashboard)/checkins/page.tsx`.
 
 ## Highest-Priority Next Work
 
