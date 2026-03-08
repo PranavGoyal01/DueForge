@@ -39,9 +39,9 @@
 
 ## Next 3 Execution Slices
 
-1. Instrument nudge and check-in funnel telemetry for beta retention analysis.
-2. Add schedule reconciliation when external event conflicts appear.
-3. Add in-app plus Brevo nudge templates.
+1. Add schedule reconciliation when external event conflicts appear.
+2. Add in-app plus Brevo nudge templates.
+3. Add accountability metrics dashboard (on-time, proof rate, streaks).
 
 ## Excluded from v1
 

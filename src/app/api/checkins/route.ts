@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ensureRelationshipForUser } from "@/lib/bootstrap";
 import { checkInCreateSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { CheckInMode } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -37,6 +38,11 @@ export async function GET() {
 		orderBy: {
 			scheduledAt: "asc",
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.CHECKIN_TIMELINE_VIEWED, {
+		userId: user.id,
+		upcomingCount: checkIns.length,
 	});
 
 	return NextResponse.json({ checkIns });
@@ -80,6 +86,14 @@ export async function POST(request: Request) {
 				scheduledAt: checkIn.scheduledAt,
 			},
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.CHECKIN_SCHEDULED, {
+		userId: user.id,
+		checkInId: checkIn.id,
+		mode: checkIn.mode,
+		hasAgenda: Boolean(checkIn.agenda),
+		scheduledAt: checkIn.scheduledAt.toISOString(),
 	});
 
 	return NextResponse.json({ checkIn }, { status: 201 });

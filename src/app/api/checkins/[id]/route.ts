@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { checkInOutcomeUpdateSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { NextResponse } from "next/server";
 
 type RouteContext = {
@@ -62,6 +63,13 @@ export async function PATCH(request: Request, context: RouteContext) {
 				hasNextCommitments: Boolean(checkIn.nextCommitments),
 			},
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.CHECKIN_OUTCOME_LOGGED, {
+		userId: user.id,
+		checkInId: checkIn.id,
+		hasNextCommitments: Boolean(checkIn.nextCommitments),
+		outcomeLength: checkIn.outcome?.length ?? 0,
 	});
 
 	return NextResponse.json({ checkIn });

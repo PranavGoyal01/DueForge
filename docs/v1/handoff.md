@@ -80,11 +80,12 @@ Last updated: 2026-03-08
 - Structured check-in outcome capture/edit shipped via `src/components/CheckInHistoryPanel.tsx`, `src/app/api/checkins/[id]/route.ts`, `src/lib/domain/contracts.ts`, and `src/app/(dashboard)/checkins/page.tsx`.
 - Per-block schedule apply diagnostics and retry hooks shipped via `src/app/api/schedule/apply/route.ts`, `src/components/SchedulePlanner.tsx`, and `src/lib/domain/contracts.ts`.
 - Schedule rationale/confidence persistence shipped via `src/app/api/schedule/suggest/route.ts` and rendered in `src/components/SchedulePlanner.tsx`.
+- Nudge + check-in funnel telemetry instrumentation shipped via `src/lib/telemetry/events.ts`, `src/app/api/checkins/route.ts`, `src/app/api/checkins/[id]/route.ts`, and `src/app/api/jobs/nudges/dispatch/route.ts`.
 
 ## Highest-Priority Next Work
 
-1. Instrument nudge and check-in funnel telemetry for beta retention analysis.
-2. Add schedule reconciliation when external event conflicts appear.
+1. Add schedule reconciliation when external event conflicts appear.
+2. Add in-app plus Brevo nudge templates.
 3. Validate daily Hobby cron behavior in production logs and tune times as needed.
 4. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).
 

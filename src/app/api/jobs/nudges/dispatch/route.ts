@@ -117,9 +117,26 @@ async function runNudgeDispatch(request: Request) {
 				where: { id: reminder.id },
 				data: { status: "failed" },
 			});
+
+			logTelemetryEvent(telemetryEvents.NUDGE_FAILED, {
+				userId: reminder.user.id,
+				channel: reminder.channel,
+				reminderId: reminder.id,
+				entityType: reminder.entityType,
+				entityId: reminder.entityId,
+			});
+
 			failed += 1;
 		}
 	}
+
+	logTelemetryEvent(telemetryEvents.NUDGE_DISPATCH_COMPLETED, {
+		mode: auth.mode,
+		pending: pending.length,
+		sent,
+		failed,
+		affectedUsers: touchedUsers.size,
+	});
 
 	return NextResponse.json({
 		mode: auth.mode,

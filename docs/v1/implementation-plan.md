@@ -23,12 +23,13 @@
 - Structured check-in outcome capture/edit shipped on `/checkins` history with authenticated `PATCH /api/checkins/[id]`.
 - Per-block schedule apply diagnostics + retry hooks shipped (`/api/schedule/apply` and `SchedulePlanner` retry flows).
 - Schedule suggestion rationale + confidence persistence shipped (`/api/schedule/suggest` -> `activity_events`) with planner confidence rendering.
+- Nudge + check-in funnel telemetry instrumentation shipped (`checkin.timeline.viewed`, `checkin.scheduled`, `checkin.outcome.logged`, `nudge.sent`, `nudge.failed`, `nudge.dispatch.completed`).
 
 ## Active Slices
 
-- `telemetry`: instrument activation, check-in completion, and nudge response funnel events.
 - `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
 - `schedule`: add reconciliation when external calendar conflicts appear after apply.
+- `metrics`: add founder-facing accountability metrics dashboard from event + commitment activity.
 
 ## Proposed Folder Topology
 
