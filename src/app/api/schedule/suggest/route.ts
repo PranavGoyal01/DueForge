@@ -1,13 +1,8 @@
 import { getSessionUser } from "@/lib/auth";
+import { scheduleSuggestRequestSchema } from "@/lib/domain/contracts";
 import { getGoogleBusyIntervalsForCalendars, listGoogleCalendarsForUser } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const suggestSchema = z.object({
-	taskIds: z.array(z.string().min(1)).min(1).max(10),
-	calendarIds: z.array(z.string().min(1)).max(50).optional(),
-});
 
 function nextTopOfHour(date = new Date()) {
 	const next = new Date(date);
@@ -37,6 +32,49 @@ function proposeSlot(durationMinutes: number, busyIntervals: Array<{ start: Date
 	return null;
 }
 
+function clamp(value: number, min: number, max: number) {
+	return Math.min(max, Math.max(min, value));
+}
+
+function computeConfidence(input: { priority: number; dueAt: Date | null; usedFallback: boolean; calendarCount: number; durationMinutes: number }) {
+	let score = 58;
+
+	if (input.priority === 1) {
+		score += 14;
+	} else if (input.priority === 2) {
+		score += 8;
+	} else {
+		score += 3;
+	}
+
+	if (input.dueAt) {
+		const hoursUntilDue = (input.dueAt.getTime() - Date.now()) / (1000 * 60 * 60);
+		if (hoursUntilDue <= 24) {
+			score += 14;
+		} else if (hoursUntilDue <= 72) {
+			score += 10;
+		} else if (hoursUntilDue <= 7 * 24) {
+			score += 6;
+		} else {
+			score += 2;
+		}
+	}
+
+	if (input.durationMinutes >= 120) {
+		score -= 4;
+	}
+
+	if (input.calendarCount === 0) {
+		score -= 12;
+	}
+
+	if (input.usedFallback) {
+		score -= 24;
+	}
+
+	return clamp(Math.round(score), 15, 98);
+}
+
 export async function POST(request: Request) {
 	const user = await getSessionUser();
 	if (!user) {
@@ -44,7 +82,7 @@ export async function POST(request: Request) {
 	}
 
 	const payload = await request.json();
-	const parsed = suggestSchema.safeParse(payload);
+	const parsed = scheduleSuggestRequestSchema.safeParse(payload);
 
 	if (!parsed.success) {
 		return NextResponse.json({ error: "Invalid scheduling payload", issues: parsed.error.flatten() }, { status: 400 });
@@ -90,14 +128,25 @@ export async function POST(request: Request) {
 	const suggestions = tasks.map((task) => {
 		const duration = task.estimatedMinutes ?? 45;
 		const proposal = proposeSlot(duration, busyIntervals, slot);
+		const usedFallback = !proposal;
+		const confidence = computeConfidence({
+			priority: task.priority,
+			dueAt: task.dueAt,
+			usedFallback,
+			calendarCount: selectedCalendarIds.length,
+			durationMinutes: duration,
+		});
 
 		if (!proposal) {
+			const fallbackStart = slot.toISOString();
+			const fallbackEnd = new Date(slot.getTime() + duration * 60 * 1000).toISOString();
 			return {
 				taskId: task.id,
 				title: task.title,
-				startAt: slot.toISOString(),
-				endAt: new Date(slot.getTime() + duration * 60 * 1000).toISOString(),
+				startAt: fallbackStart,
+				endAt: fallbackEnd,
 				reason: "No fully-free slot found in 14-day window; fallback slot suggested.",
+				confidence,
 			};
 		}
 
@@ -113,7 +162,29 @@ export async function POST(request: Request) {
 			startAt: startAt.toISOString(),
 			endAt: endAt.toISOString(),
 			reason: "Priority, due date proximity, selected-calendar availability, and focus-time batching.",
+			confidence,
 		};
+	});
+
+	await prisma.activityEvent.create({
+		data: {
+			actorId: user.id,
+			entityType: "schedule",
+			entityId: user.id,
+			eventType: "schedule.suggested",
+			payloadJson: {
+				taskIds: parsed.data.taskIds,
+				selectedCalendarIds,
+				suggestionCount: suggestions.length,
+				suggestions: suggestions.map((item) => ({
+					taskId: item.taskId,
+					startAt: item.startAt,
+					endAt: item.endAt,
+					reason: item.reason,
+					confidence: item.confidence,
+				})),
+			},
+		},
 	});
 
 	return NextResponse.json({ suggestions, selectedCalendarIds });

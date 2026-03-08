@@ -21,12 +21,14 @@
 - Drift-scan and nudge-dispatch jobs shipped with cron-safe route auth.
 - Dashboard UI migrated to shadcn-style shared components (`MetricCard`, `SectionHeader`, core forms/panels).
 - Structured check-in outcome capture/edit shipped on `/checkins` history with authenticated `PATCH /api/checkins/[id]`.
+- Per-block schedule apply diagnostics + retry hooks shipped (`/api/schedule/apply` and `SchedulePlanner` retry flows).
+- Schedule suggestion rationale + confidence persistence shipped (`/api/schedule/suggest` -> `activity_events`) with planner confidence rendering.
 
 ## Active Slices
 
-- `schedule`: persist per-block apply failures and expose retry/debug surfaces.
 - `telemetry`: instrument activation, check-in completion, and nudge response funnel events.
 - `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
+- `schedule`: add reconciliation when external calendar conflicts appear after apply.
 
 ## Proposed Folder Topology
 

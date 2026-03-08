@@ -18,6 +18,16 @@ type Suggestion = {
 	startAt: string;
 	endAt: string;
 	reason: string;
+	confidence: number;
+};
+
+type ApplyResult = {
+	taskId: string;
+	startAt: string;
+	endAt: string;
+	status: "applied" | "failed";
+	title?: string;
+	error?: string;
 };
 
 type SchedulePlannerProps = {
@@ -49,6 +59,7 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 	const [message, setMessage] = useState<string | null>(null);
 	const [calendars, setCalendars] = useState<CalendarItem[]>([]);
 	const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
+	const [lastApplyResults, setLastApplyResults] = useState<ApplyResult[]>([]);
 
 	useEffect(() => {
 		let isCancelled = false;
@@ -138,12 +149,15 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 
 		const body = (await response.json()) as { suggestions: Suggestion[] };
 		setSuggestions(body.suggestions ?? []);
+		setLastApplyResults([]);
 		setMessage("Schedule suggestions generated.");
 		setIsSuggesting(false);
 	};
 
-	const applySchedule = async () => {
-		if (suggestions.length === 0) {
+	const applySchedule = async (blocksOverride?: Suggestion[]) => {
+		const blocksToApply = blocksOverride ?? suggestions;
+
+		if (blocksToApply.length === 0) {
 			setMessage("Generate schedule suggestions first.");
 			return;
 		}
@@ -155,7 +169,7 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				blocks: suggestions.map((item) => ({
+				blocks: blocksToApply.map((item) => ({
 					taskId: item.taskId,
 					startAt: item.startAt,
 					endAt: item.endAt,
@@ -174,10 +188,40 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 			return;
 		}
 
-		setMessage("Schedule applied to dedicated DueForge calendar.");
+		const body = (await response.json()) as {
+			applied: boolean;
+			requestedCount: number;
+			appliedCount: number;
+			failedCount: number;
+			results: ApplyResult[];
+		};
+
+		const results = body.results ?? [];
+		const failedTaskIds = new Set(results.filter((result) => result.status === "failed").map((result) => result.taskId));
+		const failedBlocks = blocksToApply.filter((item) => failedTaskIds.has(item.taskId));
+
+		setLastApplyResults(results);
+		if (body.failedCount > 0) {
+			setMessage(`Applied ${body.appliedCount}/${body.requestedCount} blocks. ${body.failedCount} failed - review diagnostics and retry failed blocks.`);
+			setSuggestions(failedBlocks);
+		} else {
+			setMessage(`Applied ${body.appliedCount}/${body.requestedCount} blocks to dedicated DueForge calendar.`);
+			setSuggestions([]);
+			setSelectedTaskIds([]);
+		}
+
 		setIsApplying(false);
-		setSuggestions([]);
-		setSelectedTaskIds([]);
+	};
+
+	const retryFailed = async () => {
+		const failedTaskIds = new Set(lastApplyResults.filter((result) => result.status === "failed").map((result) => result.taskId));
+		const failedBlocks = suggestions.filter((item) => failedTaskIds.has(item.taskId));
+		if (failedBlocks.length === 0) {
+			setMessage("No failed blocks available to retry.");
+			return;
+		}
+
+		await applySchedule(failedBlocks);
 	};
 
 	if (tasks.length === 0) {
@@ -251,8 +295,12 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 					{isSuggesting ? "Generating..." : `Suggest Schedule (${selectedTaskCount})`}
 				</Button>
 
-				<Button type='button' onClick={applySchedule} disabled={isApplying || suggestions.length === 0} variant='outline' size='sm'>
+				<Button type='button' onClick={() => void applySchedule()} disabled={isApplying || suggestions.length === 0} variant='outline' size='sm'>
 					{isApplying ? "Applying..." : `Apply to Calendar (${suggestions.length})`}
+				</Button>
+
+				<Button type='button' onClick={retryFailed} disabled={isApplying || lastApplyResults.every((result) => result.status !== "failed")} variant='ghost' size='sm'>
+					Retry Failed Blocks
 				</Button>
 			</div>
 
@@ -265,14 +313,50 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 							<CardContent>
 								<div className='flex items-center justify-between gap-2'>
 									<p className='text-sm'>{item.title}</p>
-									<Badge variant='outline'>Suggested</Badge>
+									<div className='flex items-center gap-1'>
+										<Badge variant='outline'>Suggested</Badge>
+										<Badge variant='secondary'>Conf {item.confidence}%</Badge>
+									</div>
 								</div>
 								<p className='text-xs text-muted-foreground'>
 									{formatDate(item.startAt)} {"->"} {formatDate(item.endAt)}
 								</p>
+								<p className='mt-1 text-xs text-muted-foreground'>{item.reason}</p>
 							</CardContent>
 						</Card>
 					))}
+				</div>
+			) : null}
+
+			{lastApplyResults.length > 0 ? (
+				<div className='mt-4 space-y-2'>
+					<p className='px-1 text-xs uppercase tracking-wide text-muted-foreground'>Last Apply Diagnostics</p>
+					{lastApplyResults.map((result) => {
+						const isFailed = result.status === "failed";
+						const matchingSuggestion = suggestions.find((item) => item.taskId === result.taskId);
+
+						return (
+							<Card key={`${result.taskId}-${result.startAt}-${result.status}`} size='sm' className='border bg-card/60 py-3'>
+								<CardContent>
+									<div className='flex items-center justify-between gap-2'>
+										<p className='text-sm'>{result.title ?? `Task ${result.taskId}`}</p>
+										<Badge variant={isFailed ? "destructive" : "secondary"}>{isFailed ? "Failed" : "Applied"}</Badge>
+									</div>
+									<p className='text-xs text-muted-foreground'>
+										{formatDate(result.startAt)} {"->"} {formatDate(result.endAt)}
+									</p>
+									{isFailed ? <p className='mt-1 text-xs text-amber-300'>{result.error ?? "Unknown apply failure."}</p> : null}
+									{isFailed && matchingSuggestion ? (
+										<div className='mt-2'>
+											<Button type='button' size='xs' variant='outline' onClick={() => void applySchedule([matchingSuggestion])} disabled={isApplying}>
+												Retry This Block
+											</Button>
+										</div>
+									) : null}
+								</CardContent>
+							</Card>
+						);
+					})}
 				</div>
 			) : null}
 		</Card>

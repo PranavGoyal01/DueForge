@@ -19,8 +19,8 @@
 ## Milestone 3 - Scheduling and Calendar (Week 5)
 
 - [x] Add free/busy conflict scoring for schedule suggestions.
-- [ ] Persist scheduling rationale and confidence on suggested blocks.
-- [ ] Improve apply-to-calendar reliability and retry handling.
+- [x] Persist scheduling rationale and confidence on suggested blocks.
+- [x] Improve apply-to-calendar reliability and retry handling.
 - [ ] Add schedule reconciliation when external event conflicts appear.
 
 ## Milestone 4 - Beta Readiness (Week 6)
@@ -39,8 +39,8 @@
 
 ## Next 3 Execution Slices
 
-1. Add per-block failure diagnostics and retry hooks for `/api/schedule/apply`.
-2. Instrument nudge and check-in funnel telemetry for beta retention analysis.
+1. Instrument nudge and check-in funnel telemetry for beta retention analysis.
+2. Add schedule reconciliation when external event conflicts appear.
 3. Add in-app plus Brevo nudge templates.
 
 ## Excluded from v1

@@ -1,20 +1,8 @@
 import { getSessionUser } from "@/lib/auth";
+import { scheduleApplyRequestSchema } from "@/lib/domain/contracts";
 import { createGoogleCalendarEventForUser } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const applySchema = z.object({
-	blocks: z
-		.array(
-			z.object({
-				taskId: z.string().min(1),
-				startAt: z.string().datetime(),
-				endAt: z.string().datetime(),
-			}),
-		)
-		.min(1),
-});
 
 export async function POST(request: Request) {
 	const user = await getSessionUser();
@@ -23,7 +11,7 @@ export async function POST(request: Request) {
 	}
 
 	const payload = await request.json();
-	const parsed = applySchema.safeParse(payload);
+	const parsed = scheduleApplyRequestSchema.safeParse(payload);
 
 	if (!parsed.success) {
 		return NextResponse.json({ error: "Invalid schedule apply payload", issues: parsed.error.flatten() }, { status: 400 });
@@ -47,13 +35,32 @@ export async function POST(request: Request) {
 		).map((task) => [task.id, task]),
 	);
 
-	const links = await Promise.all(
-		parsed.data.blocks.map(async (block) => {
-			const task = taskMap.get(block.taskId);
-			if (!task) {
-				throw new Error("Task not found or not owned by user.");
-			}
+	type ApplyResult = {
+		taskId: string;
+		startAt: string;
+		endAt: string;
+		status: "applied" | "failed";
+		title?: string;
+		error?: string;
+		linkId?: string;
+		externalEventId?: string;
+	};
 
+	const results: ApplyResult[] = [];
+	for (const block of parsed.data.blocks) {
+		const task = taskMap.get(block.taskId);
+		if (!task) {
+			results.push({
+				taskId: block.taskId,
+				startAt: block.startAt,
+				endAt: block.endAt,
+				status: "failed",
+				error: "Task not found or not owned by user.",
+			});
+			continue;
+		}
+
+		try {
 			const createdEvent = await createGoogleCalendarEventForUser(user.id, {
 				summary: `DueForge: ${task.title}`,
 				description: task.details ?? "Scheduled by DueForge accountability workflow.",
@@ -61,7 +68,7 @@ export async function POST(request: Request) {
 				endAt: block.endAt,
 			});
 
-			return prisma.calendarEventLink.create({
+			const link = await prisma.calendarEventLink.create({
 				data: {
 					taskId: block.taskId,
 					externalEventId: createdEvent.eventId,
@@ -70,8 +77,31 @@ export async function POST(request: Request) {
 					writeSource: "google-dueforge-calendar",
 				},
 			});
-		}),
-	);
+
+			results.push({
+				taskId: block.taskId,
+				startAt: block.startAt,
+				endAt: block.endAt,
+				status: "applied",
+				title: task.title,
+				linkId: link.id,
+				externalEventId: link.externalEventId,
+			});
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown scheduling apply error.";
+			results.push({
+				taskId: block.taskId,
+				startAt: block.startAt,
+				endAt: block.endAt,
+				status: "failed",
+				title: task.title,
+				error: errorMessage,
+			});
+		}
+	}
+
+	const appliedResults = results.filter((result) => result.status === "applied");
+	const failedResults = results.filter((result) => result.status === "failed");
 
 	await prisma.activityEvent.create({
 		data: {
@@ -80,10 +110,19 @@ export async function POST(request: Request) {
 			entityId: user.id,
 			eventType: "schedule.applied",
 			payloadJson: {
-				blocks: parsed.data.blocks.length,
+				requestedBlocks: parsed.data.blocks.length,
+				appliedBlocks: appliedResults.length,
+				failedBlocks: failedResults.length,
+				failedTaskIds: failedResults.map((result) => result.taskId),
 			},
 		},
 	});
 
-	return NextResponse.json({ applied: true, links });
+	return NextResponse.json({
+		applied: failedResults.length === 0,
+		requestedCount: parsed.data.blocks.length,
+		appliedCount: appliedResults.length,
+		failedCount: failedResults.length,
+		results,
+	});
 }
