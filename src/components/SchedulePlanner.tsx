@@ -1,5 +1,8 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
 
 type PlannerTask = {
@@ -182,87 +185,96 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 	}
 
 	return (
-		<section className='df-panel mt-6 p-5'>
-			<div className='flex items-center justify-between'>
-				<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Scheduler</h2>
-				<p className='text-xs df-subtle'>Select tasks to time-block into dedicated DueForge calendar.</p>
-			</div>
+		<Card className='mt-6 py-5'>
+			<CardHeader>
+				<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Scheduler</CardTitle>
+				<CardDescription>Select tasks to time-block into dedicated DueForge calendar.</CardDescription>
+			</CardHeader>
 
-			<div className='mt-4 grid gap-2 md:grid-cols-2'>
+			<CardContent className='grid gap-2 md:grid-cols-2'>
 				{tasks.map((task) => (
-					<label key={task.id} className='df-card flex items-center gap-3 px-3 py-2'>
-						<input type='checkbox' checked={selectedTaskIds.includes(task.id)} onChange={() => toggleTask(task.id)} className='h-4 w-4' />
-						<div className='min-w-0 flex-1'>
-							<p className='truncate text-sm text-white'>{task.title}</p>
-							<p className='text-xs df-subtle'>
-								{task.estimatedMinutes ? `${task.estimatedMinutes}m` : "45m default"}
-								{task.dueAt ? ` • Due ${formatDate(task.dueAt)}` : ""}
-							</p>
+					<label key={task.id} className='rounded-lg border border-border bg-card/60 px-3 py-2'>
+						<div className='flex items-center gap-3'>
+							<input type='checkbox' checked={selectedTaskIds.includes(task.id)} onChange={() => toggleTask(task.id)} className='h-4 w-4' />
+							<div className='min-w-0 flex-1'>
+								<p className='truncate text-sm'>{task.title}</p>
+								<p className='text-xs text-muted-foreground'>
+									{task.estimatedMinutes ? `${task.estimatedMinutes}m` : "45m default"}
+									{task.dueAt ? ` • Due ${formatDate(task.dueAt)}` : ""}
+								</p>
+							</div>
 						</div>
 					</label>
 				))}
-			</div>
+			</CardContent>
 
 			{calendars.length > 0 ? (
-				<div className='df-card mt-4 p-3'>
-					<p className='text-xs uppercase tracking-wide df-muted'>Calendar Constraints (toggle + priority order)</p>
-					<div className='mt-2 space-y-2'>
-						{selectedCalendarIds
-							.map((id) => calendars.find((calendar) => calendar.id === id))
-							.filter((item): item is CalendarItem => Boolean(item))
-							.map((calendar, index) => (
-								<div key={calendar.id} className='df-card flex items-center gap-2 px-2 py-1.5'>
-									<input type='checkbox' checked={selectedCalendarIds.includes(calendar.id)} onChange={() => toggleCalendar(calendar.id)} className='h-4 w-4' />
-									<p className='flex-1 truncate text-xs text-white'>
-										{index + 1}. {calendar.summary}
-										{calendar.isDedicatedDueForge ? " (DueForge)" : ""}
-										{calendar.primary ? " (Primary)" : ""}
-									</p>
-									<button type='button' onClick={() => moveCalendar(calendar.id, "up")} className='df-btn-secondary px-1.5 py-0.5 text-[10px]'>
-										↑
-									</button>
-									<button type='button' onClick={() => moveCalendar(calendar.id, "down")} className='df-btn-secondary px-1.5 py-0.5 text-[10px]'>
-										↓
-									</button>
-								</div>
-							))}
+				<Card className='mt-4 py-3'>
+					<CardContent>
+						<p className='text-xs uppercase tracking-wide text-muted-foreground'>Calendar Constraints (toggle + priority order)</p>
+						<div className='mt-2 space-y-2'>
+							{selectedCalendarIds
+								.map((id) => calendars.find((calendar) => calendar.id === id))
+								.filter((item): item is CalendarItem => Boolean(item))
+								.map((calendar, index) => (
+									<div key={calendar.id} className='flex items-center gap-2 rounded-lg border border-border bg-card/60 px-2 py-1.5'>
+										<input type='checkbox' checked={selectedCalendarIds.includes(calendar.id)} onChange={() => toggleCalendar(calendar.id)} className='h-4 w-4' aria-label={`Include ${calendar.summary} in scheduling constraints`} />
+										<p className='flex-1 truncate text-xs'>
+											{index + 1}. {calendar.summary}
+											{calendar.isDedicatedDueForge ? " (DueForge)" : ""}
+											{calendar.primary ? " (Primary)" : ""}
+										</p>
+										<Button type='button' variant='outline' size='xs' onClick={() => moveCalendar(calendar.id, "up")}>
+											↑
+										</Button>
+										<Button type='button' variant='outline' size='xs' onClick={() => moveCalendar(calendar.id, "down")}>
+											↓
+										</Button>
+									</div>
+								))}
 
-						{calendars
-							.filter((calendar) => !selectedCalendarIds.includes(calendar.id))
-							.map((calendar) => (
-								<div key={calendar.id} className='df-card flex items-center gap-2 px-2 py-1.5 opacity-70'>
-									<input type='checkbox' checked={false} onChange={() => toggleCalendar(calendar.id)} className='h-4 w-4' />
-									<p className='flex-1 truncate text-xs df-subtle'>{calendar.summary}</p>
-								</div>
-							))}
-					</div>
-				</div>
+							{calendars
+								.filter((calendar) => !selectedCalendarIds.includes(calendar.id))
+								.map((calendar) => (
+									<div key={calendar.id} className='flex items-center gap-2 rounded-lg border border-border bg-card/40 px-2 py-1.5 opacity-70'>
+										<input type='checkbox' checked={false} onChange={() => toggleCalendar(calendar.id)} className='h-4 w-4' aria-label={`Include ${calendar.summary} in scheduling constraints`} />
+										<p className='flex-1 truncate text-xs text-muted-foreground'>{calendar.summary}</p>
+									</div>
+								))}
+						</div>
+					</CardContent>
+				</Card>
 			) : null}
 
 			<div className='mt-4 flex items-center gap-2'>
-				<button type='button' onClick={suggestSchedule} disabled={isSuggesting || selectedTaskCount === 0} className='df-btn-primary px-3 py-2 text-xs disabled:opacity-60'>
+				<Button type='button' onClick={suggestSchedule} disabled={isSuggesting || selectedTaskCount === 0} size='sm'>
 					{isSuggesting ? "Generating..." : `Suggest Schedule (${selectedTaskCount})`}
-				</button>
+				</Button>
 
-				<button type='button' onClick={applySchedule} disabled={isApplying || suggestions.length === 0} className='df-btn-secondary px-3 py-2 text-xs disabled:opacity-60'>
+				<Button type='button' onClick={applySchedule} disabled={isApplying || suggestions.length === 0} variant='outline' size='sm'>
 					{isApplying ? "Applying..." : `Apply to Calendar (${suggestions.length})`}
-				</button>
+				</Button>
 			</div>
 
-			{message ? <p className='mt-3 text-xs df-subtle'>{message}</p> : null}
+			{message ? <p className='mt-3 px-4 text-xs text-muted-foreground'>{message}</p> : null}
 
 			{suggestions.length > 0 ? (
 				<div className='mt-4 space-y-2'>
 					{suggestions.map((item) => (
-						<article key={`${item.taskId}-${item.startAt}`} className='df-card px-3 py-2'>
-							<p className='text-sm text-white'>{item.title}</p>
-							<p className='text-xs df-subtle'>
-								{formatDate(item.startAt)} → {formatDate(item.endAt)}
-							</p>
-						</article>
+						<Card key={`${item.taskId}-${item.startAt}`} size='sm' className='border bg-card/60 py-3'>
+							<CardContent>
+								<div className='flex items-center justify-between gap-2'>
+									<p className='text-sm'>{item.title}</p>
+									<Badge variant='outline'>Suggested</Badge>
+								</div>
+								<p className='text-xs text-muted-foreground'>
+									{formatDate(item.startAt)} {"->"} {formatDate(item.endAt)}
+								</p>
+							</CardContent>
+						</Card>
 					))}
 				</div>
 			) : null}
-		</section>
+		</Card>
 	);
 }

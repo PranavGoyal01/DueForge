@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useState, useTransition } from "react";
 
 type DraftResponse = {
@@ -80,16 +83,20 @@ export function QuickCaptureForm() {
 	};
 
 	return (
-		<section className='df-panel p-5'>
-			<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Quick Capture</h2>
-			<p className='mt-2 text-sm df-subtle'>Example: Finish landing page copy by tomorrow 45m #launch</p>
-			<textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder='What are you committing to right now?' className='df-input mt-4 min-h-28 w-full p-3 text-sm ring-0' />
-			<div className='mt-4 flex items-center gap-3'>
-				<button type='button' onClick={submit} disabled={isPending} className='df-btn-primary px-4 py-2 text-sm disabled:opacity-60'>
-					{isPending ? "Capturing..." : "Capture Task"}
-				</button>
-				{message ? <span className='text-xs df-subtle'>{message}</span> : null}
-			</div>
-		</section>
+		<Card className='py-5'>
+			<CardHeader>
+				<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Quick Capture</CardTitle>
+				<CardDescription>Example: Finish landing page copy by tomorrow 45m #launch</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<Textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder='What are you committing to right now?' className='min-h-28 w-full' />
+				<div className='mt-4 flex items-center gap-3'>
+					<Button type='button' onClick={submit} disabled={isPending}>
+						{isPending ? "Capturing..." : "Capture Task"}
+					</Button>
+					{message ? <span className='text-xs text-muted-foreground'>{message}</span> : null}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

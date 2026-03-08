@@ -1,8 +1,12 @@
 import { CheckInPanel } from "@/components/CheckInPanel";
 import { CommitmentFeed } from "@/components/CommitmentFeed";
+import { MetricCard } from "@/components/dashboard/MetricCard";
 import { GoogleCalendarConnectButton } from "@/components/GoogleCalendarConnectButton";
 import { QuickCaptureForm } from "@/components/QuickCaptureForm";
 import { SchedulePlanner } from "@/components/SchedulePlanner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionCookieName, getSessionUser } from "@/lib/auth";
 import { ensureRelationshipForUser } from "@/lib/bootstrap";
 import { prisma } from "@/lib/prisma";
@@ -147,54 +151,47 @@ export default async function TodayPage() {
 			<div className='mx-auto w-full max-w-6xl'>
 				<header className='mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between'>
 					<div>
-						<p className='text-xs uppercase tracking-widest df-subtle'>DUEFORGE</p>
+						<p className='text-xs uppercase tracking-widest text-muted-foreground'>DUEFORGE</p>
 						<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Execution Command Center</h1>
-						<p className='mt-2 text-sm df-subtle'>Turn commitments into scheduled, visible follow-through.</p>
+						<p className='mt-2 text-sm text-muted-foreground'>Turn commitments into scheduled, visible follow-through.</p>
 					</div>
-					<div className='flex items-end gap-3'>
+					<div className='flex flex-wrap items-end gap-3'>
 						<GoogleCalendarConnectButton isConnected={googleConnection?.syncState === "connected"} />
 						<div className='grid grid-cols-3 gap-3'>
-							<div className='df-card px-4 py-3'>
-								<p className='text-xs uppercase df-subtle'>Open Tasks</p>
-								<p className='text-2xl font-semibold'>{tasks.filter((task) => task.status !== "DONE").length}</p>
-							</div>
-							<div className='df-card px-4 py-3'>
-								<p className='text-xs uppercase df-subtle'>Committed</p>
-								<p className='text-2xl font-semibold'>{commitments.length}</p>
-							</div>
-							<div className='df-card px-4 py-3'>
-								<p className='text-xs uppercase df-subtle'>Overdue</p>
-								<p className='text-2xl font-semibold text-amber-300'>{overdueCount}</p>
-							</div>
+							<MetricCard label='Open Tasks' value={tasks.filter((task) => task.status !== "DONE").length} valueClassName='text-2xl' />
+							<MetricCard label='Committed' value={commitments.length} valueClassName='text-2xl' />
+							<MetricCard label='Overdue' value={overdueCount} valueClassName='text-2xl text-amber-300' />
 						</div>
 						<form action={signOut}>
-							<button type='submit' className='df-btn-secondary px-3 py-2 text-xs'>
+							<Button type='submit' variant='outline' size='sm'>
 								Logout
-							</button>
+							</Button>
 						</form>
 					</div>
 				</header>
 
-				<section className='mb-6 rounded-2xl border border-amber-900/40 bg-amber-950/20 p-4'>
-					<div className='flex items-center justify-between'>
-						<h2 className='text-xs font-semibold uppercase tracking-wide text-amber-200'>At-Risk Commitments</h2>
-						<p className='text-xs text-amber-300/80'>Due soon or missing proof</p>
-					</div>
-					<div className='mt-3 space-y-2'>
+				<Card className='mb-6 border-amber-700/30 bg-amber-950/20 py-4'>
+					<CardHeader>
+						<CardTitle className='text-xs font-semibold uppercase tracking-wide text-amber-200'>At-Risk Commitments</CardTitle>
+						<CardDescription className='text-xs text-amber-300/80'>Due soon or missing proof</CardDescription>
+					</CardHeader>
+					<CardContent className='space-y-2'>
 						{atRiskCommitments.length === 0 ? (
 							<p className='text-xs text-amber-200/80'>No commitments currently at risk.</p>
 						) : (
 							atRiskCommitments.slice(0, 5).map((item) => (
-								<article key={item.id} className='df-card px-3 py-2'>
-									<p className='text-sm text-white'>{item.task.title}</p>
-									<p className='text-xs df-subtle'>
-										Due {formatDate(item.dueAt)} • Proofs: {item.proofs.length}
-									</p>
-								</article>
+								<Card key={item.id} size='sm' className='border bg-card/70 py-3'>
+									<CardContent>
+										<p className='text-sm'>{item.task.title}</p>
+										<p className='text-xs text-muted-foreground'>
+											Due {formatDate(item.dueAt)} • Proofs: {item.proofs.length}
+										</p>
+									</CardContent>
+								</Card>
 							))
 						)}
-					</div>
-				</section>
+					</CardContent>
+				</Card>
 
 				<div className='grid gap-6 lg:grid-cols-2'>
 					<QuickCaptureForm />
@@ -202,44 +199,46 @@ export default async function TodayPage() {
 					<CommitmentFeed initialCommitments={serializedCommitments} />
 				</div>
 
-				<section className='df-panel mt-6 p-5'>
-					<div className='flex items-center justify-between'>
-						<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Tasks</h2>
-						<p className='text-xs df-subtle'>Mark a task as commitment-visible to activate accountability.</p>
-					</div>
-					<div className='mt-4 grid gap-3 md:grid-cols-2'>
+				<Card className='mt-6 py-5'>
+					<CardHeader>
+						<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Tasks</CardTitle>
+						<CardDescription>Mark a task as commitment-visible to activate accountability.</CardDescription>
+					</CardHeader>
+					<CardContent className='grid gap-3 md:grid-cols-2'>
 						{tasks.length === 0 ? (
-							<p className='text-sm df-subtle'>No tasks yet. Use quick capture to add your first commitment.</p>
+							<p className='text-sm text-muted-foreground'>No tasks yet. Use quick capture to add your first commitment.</p>
 						) : (
 							tasks.map((task) => (
-								<article key={task.id} className='df-card p-4'>
-									<div className='flex items-start justify-between gap-3'>
-										<div>
-											<h3 className='text-sm font-medium text-white'>{task.title}</h3>
-											<p className='mt-1 text-xs df-subtle'>
-												Due {formatDate(task.dueAt)} • Risk {task.riskScore}%
-											</p>
-											<p className='mt-1 text-xs uppercase df-subtle'>Status: {task.status.replace("_", " ")}</p>
+								<Card key={task.id} className='py-4'>
+									<CardContent>
+										<div className='flex items-start justify-between gap-3'>
+											<div>
+												<h3 className='text-sm font-medium'>{task.title}</h3>
+												<p className='mt-1 text-xs text-muted-foreground'>
+													Due {formatDate(task.dueAt)} • Risk {task.riskScore}%
+												</p>
+												<p className='mt-1 text-xs uppercase text-muted-foreground'>Status: {task.status.replace("_", " ")}</p>
+											</div>
+											<Badge variant='outline'>P{task.priority}</Badge>
 										</div>
-										<span className='rounded-full border border-[var(--border)] px-2 py-1 text-xs df-muted'>P{task.priority}</span>
-									</div>
-									<div className='mt-3 flex items-center gap-2'>
-										{task.tags.map((taskTag) => (
-											<span key={taskTag.tagId} className='rounded-md bg-[var(--surface)] px-2 py-1 text-[11px] df-muted'>
-												#{taskTag.tag.name}
-											</span>
-										))}
-									</div>
-									<form className='mt-4' action={commitToTask.bind(null, user.id, task.id)}>
-										<button type='submit' disabled={committedTaskIds.has(task.id)} className='df-btn-primary px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50'>
-											{committedTaskIds.has(task.id) ? "Committed" : "Commit Task"}
-										</button>
-									</form>
-								</article>
+										<div className='mt-3 flex items-center gap-2'>
+											{task.tags.map((taskTag) => (
+												<Badge key={taskTag.tagId} variant='secondary' className='text-[11px]'>
+													#{taskTag.tag.name}
+												</Badge>
+											))}
+										</div>
+										<form className='mt-4' action={commitToTask.bind(null, user.id, task.id)}>
+											<Button type='submit' size='sm' disabled={committedTaskIds.has(task.id)}>
+												{committedTaskIds.has(task.id) ? "Committed" : "Commit Task"}
+											</Button>
+										</form>
+									</CardContent>
+								</Card>
 							))
 						)}
-					</div>
-				</section>
+					</CardContent>
+				</Card>
 
 				<SchedulePlanner tasks={schedulableTasks} />
 			</div>

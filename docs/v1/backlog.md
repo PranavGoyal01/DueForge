@@ -12,13 +12,13 @@
 
 - [x] Add commitment feed filtering (`today`, `week`, `at_risk`) and live commitments hub page.
 - [x] Add stronger proof submission validation via shared contracts.
-- [ ] Add structured daily and weekly check-in templates.
-- [ ] Build drift scanner rules and nudge eligibility states.
+- [x] Add structured daily and weekly check-in templates.
+- [x] Build drift scanner rules and nudge eligibility states.
 - [ ] Add in-app plus Brevo nudge templates.
 
 ## Milestone 3 - Scheduling and Calendar (Week 5)
 
-- [ ] Add free/busy conflict scoring for schedule suggestions.
+- [x] Add free/busy conflict scoring for schedule suggestions.
 - [ ] Persist scheduling rationale and confidence on suggested blocks.
 - [ ] Improve apply-to-calendar reliability and retry handling.
 - [ ] Add schedule reconciliation when external event conflicts appear.
@@ -39,9 +39,9 @@
 
 ## Next 3 Execution Slices
 
-1. Replace `/checkins` placeholder with real schedule + create flow.
-2. Replace `/schedule` placeholder with real suggested block history and apply-state diagnostics.
-3. Add recurring drift scan and nudge dispatch jobs (cron + reminder pipeline).
+1. Add per-block failure diagnostics and retry hooks for `/api/schedule/apply`.
+2. Instrument nudge and check-in funnel telemetry for beta retention analysis.
+3. Add in-app plus Brevo nudge templates.
 
 ## Excluded from v1
 

@@ -1,5 +1,8 @@
 "use client";
 
+import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 
 type OpsSummary = {
@@ -34,33 +37,36 @@ export function OpsRunPanel() {
 	}
 
 	return (
-		<section className='df-panel p-5'>
-			<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Operations</h2>
-			<p className='mt-2 text-xs df-subtle'>Run drift scan and reminder dispatch manually during user testing sessions.</p>
+		<Card className='py-5'>
+			<CardContent>
+				<SectionHeader title='Operations' description='Run drift scan and reminder dispatch manually during user testing sessions.' />
 
-			<div className='mt-3 flex flex-wrap gap-2'>
-				<button type='button' onClick={() => run("/api/jobs/drift-scan", "Drift Scan", setIsScanning)} disabled={isScanning || isDispatching} className='df-btn-primary px-3 py-2 text-xs disabled:opacity-60'>
-					{isScanning ? "Running Drift Scan..." : "Run Drift Scan"}
-				</button>
-				<button type='button' onClick={() => run("/api/jobs/nudges/dispatch", "Nudge Dispatch", setIsDispatching)} disabled={isScanning || isDispatching} className='df-btn-secondary px-3 py-2 text-xs disabled:opacity-60'>
-					{isDispatching ? "Dispatching..." : "Dispatch Nudges"}
-				</button>
-			</div>
-
-			{error ? <p className='mt-3 text-xs text-amber-300'>{error}</p> : null}
-
-			{summary ? (
-				<div className='mt-3 df-card p-3'>
-					<p className='text-xs uppercase df-subtle'>{summary.label} Result</p>
-					<div className='mt-2 grid gap-2 md:grid-cols-3'>
-						{Object.entries(summary.payload).map(([key, value]) => (
-							<p key={key} className='text-xs text-white'>
-								{key}: {value}
-							</p>
-						))}
-					</div>
+				<div className='mt-3 flex flex-wrap gap-2'>
+					<Button type='button' onClick={() => run("/api/jobs/drift-scan", "Drift Scan", setIsScanning)} disabled={isScanning || isDispatching} size='sm'>
+						{isScanning ? "Running Drift Scan..." : "Run Drift Scan"}
+					</Button>
+					<Button type='button' onClick={() => run("/api/jobs/nudges/dispatch", "Nudge Dispatch", setIsDispatching)} disabled={isScanning || isDispatching} variant='outline' size='sm'>
+						{isDispatching ? "Dispatching..." : "Dispatch Nudges"}
+					</Button>
 				</div>
-			) : null}
-		</section>
+
+				{error ? <p className='mt-3 text-xs text-amber-300'>{error}</p> : null}
+
+				{summary ? (
+					<Card className='mt-3 py-3'>
+						<CardContent>
+							<p className='text-xs uppercase text-muted-foreground'>{summary.label} Result</p>
+							<div className='mt-2 grid gap-2 md:grid-cols-3'>
+								{Object.entries(summary.payload).map(([key, value]) => (
+									<p key={key} className='text-xs'>
+										{key}: {value}
+									</p>
+								))}
+							</div>
+						</CardContent>
+					</Card>
+				) : null}
+			</CardContent>
+		</Card>
 	);
 }

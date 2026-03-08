@@ -33,6 +33,11 @@ export const checkInCreateSchema = z.object({
 	agenda: z.string().trim().max(1500).optional(),
 });
 
+export const checkInOutcomeUpdateSchema = z.object({
+	outcome: z.string().trim().min(1).max(2000),
+	nextCommitments: z.string().trim().max(2000).optional(),
+});
+
 export const proofCreateSchema = z.object({
 	commitmentId: z.string().cuid(),
 	type: z.enum(["TEXT", "IMAGE", "LINK", "VIDEO"]).default("TEXT"),
@@ -53,5 +58,6 @@ export type TaskDraft = z.infer<typeof taskDraftSchema>;
 export type TaskCreateRequest = z.infer<typeof taskCreateRequestSchema>;
 export type CommitmentCreate = z.infer<typeof commitmentCreateSchema>;
 export type CheckInCreate = z.infer<typeof checkInCreateSchema>;
+export type CheckInOutcomeUpdate = z.infer<typeof checkInOutcomeUpdateSchema>;
 export type ProofCreate = z.infer<typeof proofCreateSchema>;
 export type NudgeDecision = z.infer<typeof nudgeDecisionSchema>;

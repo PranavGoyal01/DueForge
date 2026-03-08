@@ -1,4 +1,6 @@
+import { MetricCard } from "@/components/dashboard/MetricCard";
 import { SchedulePlanner } from "@/components/SchedulePlanner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -80,51 +82,46 @@ export default async function SchedulePage() {
 	return (
 		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
-				<header>
-					<p className='text-xs uppercase tracking-widest df-subtle'>SCHEDULE</p>
+				<header className='space-y-2'>
+					<p className='text-xs uppercase tracking-widest text-muted-foreground'>SCHEDULE</p>
 					<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Execution Scheduling Diagnostics</h1>
-					<p className='mt-2 text-sm df-subtle'>Generate focused blocks, apply them to your dedicated calendar, and inspect recent scheduling writes.</p>
+					<p className='mt-2 text-sm text-muted-foreground'>Generate focused blocks, apply them to your dedicated calendar, and inspect recent scheduling writes.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-3'>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>Google Connection</p>
-						<p className='mt-1 text-sm text-white'>{googleConnection?.syncState === "connected" ? "Connected" : "Not connected"}</p>
-					</article>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>Schedulable Tasks</p>
-						<p className='mt-1 text-xl font-semibold text-white'>{schedulableTasks.length}</p>
-					</article>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>Apply Runs (7d)</p>
-						<p className='mt-1 text-xl font-semibold text-white'>{appliedEventsLastWeek}</p>
-					</article>
+					<MetricCard label='Google Connection' value={googleConnection?.syncState === "connected" ? "Connected" : "Not connected"} valueClassName='text-sm' />
+					<MetricCard label='Schedulable Tasks' value={schedulableTasks.length} valueClassName='text-2xl' />
+					<MetricCard label='Apply Runs (7d)' value={appliedEventsLastWeek} valueClassName='text-2xl' />
 				</section>
 
 				<SchedulePlanner tasks={schedulableTasks} />
 
-				<section className='df-panel p-5'>
-					<div className='flex items-center justify-between'>
-						<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Recent Applied Blocks</h2>
-						<p className='text-xs df-subtle'>Last {recentLinks.length} writes from schedule apply flow</p>
-					</div>
+				<Card className='py-5'>
+					<CardHeader>
+						<div className='flex items-center justify-between'>
+							<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Recent Applied Blocks</CardTitle>
+							<CardDescription>Last {recentLinks.length} writes from schedule apply flow</CardDescription>
+						</div>
+					</CardHeader>
 
-					<div className='mt-4 space-y-2'>
+					<CardContent className='space-y-2'>
 						{recentLinks.length === 0 ? (
-							<p className='text-xs df-subtle'>No applied blocks yet. Generate suggestions and apply your first run.</p>
+							<p className='text-xs text-muted-foreground'>No applied blocks yet. Generate suggestions and apply your first run.</p>
 						) : (
 							recentLinks.map((link) => (
-								<article key={link.id} className='df-card px-3 py-2'>
-									<p className='text-sm text-white'>{link.task.title}</p>
-									<p className='text-xs df-subtle'>
-										{formatDate(link.startAt)} {"->"} {formatDate(link.endAt)}
-									</p>
-									<p className='text-[11px] df-subtle'>Source: {link.writeSource}</p>
-								</article>
+								<Card key={link.id} size='sm' className='border bg-card/60 py-3'>
+									<CardContent>
+										<p className='text-sm'>{link.task.title}</p>
+										<p className='text-xs text-muted-foreground'>
+											{formatDate(link.startAt)} {"->"} {formatDate(link.endAt)}
+										</p>
+										<p className='text-[11px] text-muted-foreground'>Source: {link.writeSource}</p>
+									</CardContent>
+								</Card>
 							))
 						)}
-					</div>
-				</section>
+					</CardContent>
+				</Card>
 			</div>
 		</main>
 	);

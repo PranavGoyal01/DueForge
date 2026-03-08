@@ -15,12 +15,18 @@
 - Shared API contract wiring in core routes (`tasks`, `commitments`, `checkins`, `proof`).
 - Feature request loop shipped (`/demo` form -> `/api/feature-requests` -> optional email forward).
 - Commitments hub upgraded from placeholder to real data page.
+- Check-ins page upgraded from placeholder to real list/create/history flow.
+- Schedule page upgraded from placeholder to planner with apply diagnostics.
+- Settings page upgraded from placeholder to diagnostics + manual ops controls.
+- Drift-scan and nudge-dispatch jobs shipped with cron-safe route auth.
+- Dashboard UI migrated to shadcn-style shared components (`MetricCard`, `SectionHeader`, core forms/panels).
+-   Structured check-in outcome capture/edit shipped on `/checkins` history with authenticated `PATCH /api/checkins/[id]`.
 
 ## Active Slices
 
-- `checkins`: replace placeholder page with real list + create + partner context.
-- `schedule`: expose real suggestion/apply diagnostics and confidence/risk signals.
-- `settings`: add integration health and environment diagnostics for beta operations.
+- `schedule`: persist per-block apply failures and expose retry/debug surfaces.
+- `telemetry`: instrument activation, check-in completion, and nudge response funnel events.
+-   `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
 
 ## Proposed Folder Topology
 
@@ -61,7 +67,7 @@ src/
 - Keep API contracts explicit with shared schemas.
 - Prefer additive changes that do not disrupt existing stable flows.
 - Ship thin vertical slices and validate behavior with real users weekly.
-- Track drift early: no silent failure paths in reminders, commitments, or proofs.
+-   Track drift early: no silent failure paths in reminders, commitments, or proofs.
 
 ## Cold-Start Checklist For New Contributor Session
 

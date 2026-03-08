@@ -1,5 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useMemo, useState } from "react";
 
 type CheckInMode = "VIDEO" | "AUDIO" | "ASYNC_NOTE";
@@ -111,50 +117,65 @@ export function CheckInPanel() {
 	};
 
 	return (
-		<section className='df-panel p-5'>
-			<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Check-ins</h2>
-			<p className='mt-2 text-sm df-subtle'>Schedule accountability check-ins for the next two weeks.</p>
+		<Card className='py-5'>
+			<CardHeader>
+				<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Check-ins</CardTitle>
+				<CardDescription>Schedule accountability check-ins for the next two weeks.</CardDescription>
+			</CardHeader>
+			<CardContent className='space-y-4'>
+				<div className='grid gap-3 sm:grid-cols-2'>
+					<div className='space-y-1'>
+						<label htmlFor='checkin-scheduled-at' className='text-xs text-muted-foreground'>
+							Date & time
+						</label>
+						<Input id='checkin-scheduled-at' type='datetime-local' value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} className='w-full' />
+					</div>
 
-			<div className='mt-4 grid gap-3 sm:grid-cols-2'>
-				<label className='text-xs df-subtle'>
-					Date & time
-					<input type='datetime-local' value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} className='df-input mt-1 w-full px-3 py-2 text-sm' />
-				</label>
+					<div className='space-y-1'>
+						<label className='text-xs text-muted-foreground'>Mode</label>
+						<Select value={mode} onValueChange={(value) => setMode(value as CheckInMode)}>
+							<SelectTrigger className='w-full'>
+								<SelectValue placeholder='Select mode' />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='VIDEO'>Video</SelectItem>
+								<SelectItem value='AUDIO'>Audio</SelectItem>
+								<SelectItem value='ASYNC_NOTE'>Async Note</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
 
-				<label className='text-xs df-subtle'>
-					Mode
-					<select value={mode} onChange={(event) => setMode(event.target.value as CheckInMode)} className='df-input mt-1 w-full px-3 py-2 text-sm'>
-						<option value='VIDEO'>Video</option>
-						<option value='AUDIO'>Audio</option>
-						<option value='ASYNC_NOTE'>Async Note</option>
-					</select>
-				</label>
-			</div>
+				<div className='space-y-1'>
+					<label htmlFor='checkin-agenda' className='text-xs text-muted-foreground'>
+						Agenda (optional)
+					</label>
+					<Textarea id='checkin-agenda' value={agenda} onChange={(event) => setAgenda(event.target.value)} className='min-h-20 w-full' placeholder='Discuss blockers and next commitments' />
+				</div>
 
-			<label className='mt-3 block text-xs df-subtle'>
-				Agenda (optional)
-				<textarea value={agenda} onChange={(event) => setAgenda(event.target.value)} className='df-input mt-1 min-h-20 w-full px-3 py-2 text-sm' placeholder='Discuss blockers and next commitments' />
-			</label>
+				<div className='flex items-center gap-3'>
+					<Button type='button' onClick={submit} disabled={isSubmitting}>
+						{isSubmitting ? "Scheduling..." : "Schedule Check-in"}
+					</Button>
+					{message ? <p className='text-xs text-muted-foreground'>{message}</p> : null}
+				</div>
 
-			<div className='mt-3'>
-				<button type='button' onClick={submit} disabled={isSubmitting} className='df-btn-primary px-3 py-2 text-xs disabled:opacity-60'>
-					{isSubmitting ? "Scheduling..." : "Schedule Check-in"}
-				</button>
-			</div>
-
-			{message ? <p className='mt-3 text-xs df-subtle'>{message}</p> : null}
-
-			<div className='mt-4 space-y-2'>
-				{isLoading ? <p className='text-xs df-subtle'>Loading check-ins...</p> : null}
-				{!isLoading && sortedCheckIns.length === 0 ? <p className='text-xs df-subtle'>No upcoming check-ins in the next two weeks.</p> : null}
-				{sortedCheckIns.map((item) => (
-					<article key={item.id} className='df-card px-3 py-2'>
-						<p className='text-sm text-white'>{formatDate(item.scheduledAt)}</p>
-						<p className='text-xs df-subtle'>{modeLabels[item.mode]}</p>
-						{item.agenda ? <p className='mt-1 text-xs df-subtle'>{item.agenda}</p> : null}
-					</article>
-				))}
-			</div>
-		</section>
+				<div className='space-y-2 pt-1'>
+					{isLoading ? <p className='text-xs text-muted-foreground'>Loading check-ins...</p> : null}
+					{!isLoading && sortedCheckIns.length === 0 ? <p className='text-xs text-muted-foreground'>No upcoming check-ins in the next two weeks.</p> : null}
+					{sortedCheckIns.map((item) => (
+						<Card key={item.id} size='sm' className='border bg-card/60 py-3'>
+							<CardContent className='space-y-1'>
+								<div className='flex items-center justify-between gap-2'>
+									<p className='text-sm'>{formatDate(item.scheduledAt)}</p>
+									<Badge variant='outline'>{modeLabels[item.mode]}</Badge>
+								</div>
+								{item.agenda ? <p className='text-xs text-muted-foreground'>{item.agenda}</p> : null}
+							</CardContent>
+						</Card>
+					))}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

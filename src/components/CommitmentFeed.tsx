@@ -1,5 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMemo, useState, useTransition } from "react";
 
 type ProofTypeValue = "TEXT" | "LINK";
@@ -124,87 +128,96 @@ export function CommitmentFeed({ initialCommitments }: CommitmentFeedProps) {
 	};
 
 	return (
-		<section className='df-panel p-5'>
-			<div className='flex items-center justify-between gap-3'>
-				<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Commitment Feed</h2>
-				<div className='flex items-center gap-2'>
-					{(
-						[
-							{ id: "today", label: "Today" },
-							{ id: "week", label: "Week" },
-							{ id: "at_risk", label: "At Risk" },
-						] as Array<{ id: CommitmentScope; label: string }>
-					).map((scope) => (
-						<button key={scope.id} type='button' onClick={() => void loadScope(scope.id)} disabled={isLoadingScope} className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${activeScope === scope.id ? "border-[var(--accent)] bg-[var(--accent)] text-[#111111]" : "df-btn-secondary"}`}>
-							{scope.label}
-						</button>
-					))}
+		<Card className='py-5'>
+			<CardHeader>
+				<div className='flex items-center justify-between gap-3'>
+					<div>
+						<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Commitment Feed</CardTitle>
+						<CardDescription>Track proofs and close the loop on commitments.</CardDescription>
+					</div>
+					<div className='flex items-center gap-2'>
+						{(
+							[
+								{ id: "today", label: "Today" },
+								{ id: "week", label: "Week" },
+								{ id: "at_risk", label: "At Risk" },
+							] as Array<{ id: CommitmentScope; label: string }>
+						).map((scope) => (
+							<Button key={scope.id} type='button' onClick={() => void loadScope(scope.id)} disabled={isLoadingScope} variant={activeScope === scope.id ? "default" : "outline"} size='xs'>
+								{scope.label}
+							</Button>
+						))}
+					</div>
 				</div>
-			</div>
-			<div className='mt-4 space-y-3'>
-				{isLoadingScope ? <p className='text-xs df-subtle'>Loading commitments...</p> : null}
+			</CardHeader>
+			<CardContent className='space-y-3'>
+				{isLoadingScope ? <p className='text-xs text-muted-foreground'>Loading commitments...</p> : null}
 				{!hasItems ? (
-					<p className='text-sm df-subtle'>No commitments yet. Commit to a task to start accountability tracking.</p>
+					<p className='text-sm text-muted-foreground'>No commitments yet. Commit to a task to start accountability tracking.</p>
 				) : (
 					commitments.map((commitment) => (
-						<article key={commitment.id} className='df-card p-3'>
-							<p className='text-sm font-medium text-white'>{commitment.task.title}</p>
-							<p className='mt-1 text-xs df-subtle'>
-								Due {formatDate(commitment.dueAt)} • Proofs: {commitment.proofs.length} • {commitment.status}
-							</p>
-
-							<div className='mt-3 grid gap-2 sm:grid-cols-[120px_1fr]'>
-								<select
-									value={proofTypeByCommitmentId[commitment.id] ?? "TEXT"}
-									onChange={(event) =>
-										setProofTypeByCommitmentId((current) => ({
-											...current,
-											[commitment.id]: event.target.value as ProofTypeValue,
-										}))
-									}
-									className='df-input px-2 py-2 text-xs'
-								>
-									<option value='TEXT'>Text</option>
-									<option value='LINK'>Link</option>
-								</select>
-								<input
-									value={draftByCommitmentId[commitment.id] ?? ""}
-									onChange={(event) =>
-										setDraftByCommitmentId((current) => ({
-											...current,
-											[commitment.id]: event.target.value,
-										}))
-									}
-									placeholder='Add proof details or URL'
-									className='df-input px-3 py-2 text-xs'
-								/>
-							</div>
-
-							<div className='mt-2 flex items-center justify-between gap-3'>
-								<label className='flex items-center gap-2 text-xs df-subtle'>
-									<input
-										type='checkbox'
-										checked={completeByCommitmentId[commitment.id] ?? false}
-										onChange={(event) =>
-											setCompleteByCommitmentId((current) => ({
+						<Card key={commitment.id} className='py-3'>
+							<CardContent>
+								<p className='text-sm font-medium'>{commitment.task.title}</p>
+								<p className='mt-1 text-xs text-muted-foreground'>
+									Due {formatDate(commitment.dueAt)} • Proofs: {commitment.proofs.length} • {commitment.status}
+								</p>
+								<div className='mt-3 grid gap-2 sm:grid-cols-[140px_1fr]'>
+									<Select
+										value={proofTypeByCommitmentId[commitment.id] ?? "TEXT"}
+										onValueChange={(value) =>
+											setProofTypeByCommitmentId((current) => ({
 												...current,
-												[commitment.id]: event.target.checked,
+												[commitment.id]: value as ProofTypeValue,
 											}))
 										}
-										className='h-4 w-4'
+									>
+										<SelectTrigger className='w-full'>
+											<SelectValue placeholder='Proof type' />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='TEXT'>Text</SelectItem>
+											<SelectItem value='LINK'>Link</SelectItem>
+										</SelectContent>
+									</Select>
+									<Input
+										value={draftByCommitmentId[commitment.id] ?? ""}
+										onChange={(event) =>
+											setDraftByCommitmentId((current) => ({
+												...current,
+												[commitment.id]: event.target.value,
+											}))
+										}
+										placeholder='Add proof details or URL'
+										className='text-xs'
 									/>
-									Mark completed
-								</label>
-								<button type='button' disabled={isPending} onClick={() => submitProof(commitment.id)} className='df-btn-primary px-3 py-1.5 text-xs disabled:opacity-60'>
-									{isPending ? "Submitting..." : "Submit Proof"}
-								</button>
-							</div>
-						</article>
+								</div>
+
+								<div className='mt-2 flex items-center justify-between gap-3'>
+									<label className='flex items-center gap-2 text-xs text-muted-foreground'>
+										<input
+											type='checkbox'
+											checked={completeByCommitmentId[commitment.id] ?? false}
+											onChange={(event) =>
+												setCompleteByCommitmentId((current) => ({
+													...current,
+													[commitment.id]: event.target.checked,
+												}))
+											}
+											className='h-4 w-4'
+										/>
+										Mark completed
+									</label>
+									<Button type='button' size='sm' disabled={isPending} onClick={() => submitProof(commitment.id)}>
+										{isPending ? "Submitting..." : "Submit Proof"}
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
 					))
 				)}
-			</div>
-
-			{message ? <p className='mt-3 text-xs df-subtle'>{message}</p> : null}
-		</section>
+			</CardContent>
+			{message ? <p className='mt-3 px-4 text-xs text-muted-foreground'>{message}</p> : null}
+		</Card>
 	);
 }

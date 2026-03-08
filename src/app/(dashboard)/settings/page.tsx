@@ -1,4 +1,8 @@
+import { MetricCard } from "@/components/dashboard/MetricCard";
 import { OpsRunPanel } from "@/components/dashboard/OpsRunPanel";
+import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -66,77 +70,95 @@ export default async function SettingsPage() {
 	return (
 		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
-				<header>
-					<p className='text-xs uppercase tracking-widest df-subtle'>SETTINGS</p>
+				<header className='space-y-2'>
+					<p className='text-xs uppercase tracking-widest text-muted-foreground'>SETTINGS</p>
 					<h1 className='mt-2 text-3xl font-semibold tracking-tight'>System Diagnostics</h1>
-					<p className='mt-2 text-sm df-subtle'>Use this page as your beta readiness checklist before user testing sessions.</p>
+					<p className='mt-2 text-sm text-muted-foreground'>Use this page as your beta readiness checklist before user testing sessions.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-3'>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>User Testing Readiness</p>
-						<p className={`mt-1 text-sm font-semibold ${userTestingReady ? "text-emerald-300" : "text-amber-300"}`}>{userTestingReady ? "Ready" : "Needs setup"}</p>
-					</article>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>Google Calendar</p>
-						<p className={`mt-1 text-sm font-semibold ${connection?.syncState === "connected" ? "text-emerald-300" : "text-amber-300"}`}>{connection?.syncState === "connected" ? "Connected" : "Not connected"}</p>
-					</article>
-					<article className='df-card px-4 py-3'>
-						<p className='text-xs uppercase df-subtle'>Open Commitments</p>
-						<p className='mt-1 text-xl font-semibold text-white'>{openCommitments}</p>
-					</article>
+					<MetricCard label='User Testing Readiness' value={userTestingReady ? "Ready" : "Needs setup"} valueClassName={`text-sm ${userTestingReady ? "text-emerald-300" : "text-amber-300"}`} />
+					<MetricCard label='Google Calendar' value={connection?.syncState === "connected" ? "Connected" : "Not connected"} valueClassName={`text-sm ${connection?.syncState === "connected" ? "text-emerald-300" : "text-amber-300"}`} />
+					<MetricCard label='Open Commitments' value={openCommitments} valueClassName='text-2xl' />
 				</section>
 
-				<section className='df-panel p-5'>
-					<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Account + Activity</h2>
-					<div className='mt-3 grid gap-3 md:grid-cols-2'>
-						<article className='df-card px-3 py-2'>
-							<p className='text-xs uppercase df-subtle'>Email</p>
-							<p className='mt-1 text-sm text-white'>{user.email}</p>
-						</article>
-						<article className='df-card px-3 py-2'>
-							<p className='text-xs uppercase df-subtle'>Email Verified</p>
-							<p className='mt-1 text-sm text-white'>{user.emailVerifiedAt ? "Yes" : "No"}</p>
-						</article>
-						<article className='df-card px-3 py-2'>
-							<p className='text-xs uppercase df-subtle'>Timezone</p>
-							<p className='mt-1 text-sm text-white'>{user.timezone}</p>
-						</article>
-						<article className='df-card px-3 py-2'>
-							<p className='text-xs uppercase df-subtle'>Last Check-In Scheduled</p>
-							<p className='mt-1 text-sm text-white'>{formatDate(lastScheduledCheckIn?.scheduledAt ?? null)}</p>
-						</article>
-					</div>
-				</section>
+				<Card className='py-5'>
+					<CardContent>
+						<SectionHeader title='Account + Activity' />
+						<div className='mt-3 grid gap-3 md:grid-cols-2'>
+							<Card className='py-3'>
+								<CardContent>
+									<p className='text-xs uppercase text-muted-foreground'>Email</p>
+									<p className='mt-1 text-sm'>{user.email}</p>
+								</CardContent>
+							</Card>
+							<Card className='py-3'>
+								<CardContent>
+									<p className='text-xs uppercase text-muted-foreground'>Email Verified</p>
+									<p className='mt-1 text-sm'>{user.emailVerifiedAt ? "Yes" : "No"}</p>
+								</CardContent>
+							</Card>
+							<Card className='py-3'>
+								<CardContent>
+									<p className='text-xs uppercase text-muted-foreground'>Timezone</p>
+									<p className='mt-1 text-sm'>{user.timezone}</p>
+								</CardContent>
+							</Card>
+							<Card className='py-3'>
+								<CardContent>
+									<p className='text-xs uppercase text-muted-foreground'>Last Check-In Scheduled</p>
+									<p className='mt-1 text-sm'>{formatDate(lastScheduledCheckIn?.scheduledAt ?? null)}</p>
+								</CardContent>
+							</Card>
+						</div>
+					</CardContent>
+				</Card>
 
-				<section className='df-panel p-5'>
-					<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Environment Checklist</h2>
-					<p className='mt-2 text-xs df-subtle'>Displays only readiness booleans, never secret values.</p>
-					<div className='mt-3 grid gap-2 md:grid-cols-2'>
-						<p className='df-card px-3 py-2 text-xs text-white'>AUTH_SECRET strong: {envChecks.authSecret ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>DATABASE_URL set: {envChecks.databaseUrl ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>DIRECT_URL set: {envChecks.directUrl ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>CRON_SECRET configured: {envChecks.cronSecret ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>SMTP configured: {envChecks.smtp ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>Google OAuth configured: {envChecks.googleOauth ? "Yes" : "No"}</p>
-						<p className='df-card px-3 py-2 text-xs text-white'>Feature request inbox set: {envChecks.featureRequestRecipient ? "Yes" : "No"}</p>
-					</div>
-				</section>
+				<Card className='py-5'>
+					<CardContent>
+						<SectionHeader title='Environment Checklist' description='Displays only readiness booleans, never secret values.' />
+						<div className='mt-3 grid gap-2 md:grid-cols-2'>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								AUTH_SECRET strong: <Badge variant={envChecks.authSecret ? "secondary" : "outline"}>{envChecks.authSecret ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								DATABASE_URL set: <Badge variant={envChecks.databaseUrl ? "secondary" : "outline"}>{envChecks.databaseUrl ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								DIRECT_URL set: <Badge variant={envChecks.directUrl ? "secondary" : "outline"}>{envChecks.directUrl ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								CRON_SECRET configured: <Badge variant={envChecks.cronSecret ? "secondary" : "outline"}>{envChecks.cronSecret ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								SMTP configured: <Badge variant={envChecks.smtp ? "secondary" : "outline"}>{envChecks.smtp ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								Google OAuth configured: <Badge variant={envChecks.googleOauth ? "secondary" : "outline"}>{envChecks.googleOauth ? "Yes" : "No"}</Badge>
+							</div>
+							<div className='rounded-lg border border-border bg-card/60 px-3 py-2 text-xs'>
+								Feature request inbox set: <Badge variant={envChecks.featureRequestRecipient ? "secondary" : "outline"}>{envChecks.featureRequestRecipient ? "Yes" : "No"}</Badge>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 
-				<section className='df-panel p-5'>
-					<h2 className='text-sm font-semibold uppercase tracking-wide df-muted'>Quick Actions</h2>
-					<div className='mt-3 flex flex-wrap gap-2'>
-						<Link href='/today' className='df-btn-secondary px-3 py-2 text-xs'>
-							Go to Today
-						</Link>
-						<Link href='/schedule' className='df-btn-secondary px-3 py-2 text-xs'>
-							Open Scheduler
-						</Link>
-						<Link href='/checkins' className='df-btn-secondary px-3 py-2 text-xs'>
-							Open Check-Ins
-						</Link>
-					</div>
-				</section>
+				<Card className='py-5'>
+					<CardContent>
+						<SectionHeader title='Quick Actions' />
+						<div className='mt-3 flex flex-wrap gap-2'>
+							<Link href='/today' className='inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted'>
+								Go to Today
+							</Link>
+							<Link href='/schedule' className='inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted'>
+								Open Scheduler
+							</Link>
+							<Link href='/checkins' className='inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted'>
+								Open Check-Ins
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
 
 				<OpsRunPanel />
 			</div>
