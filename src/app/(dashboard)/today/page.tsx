@@ -26,6 +26,46 @@ function formatDate(value: Date | null) {
 	}).format(value);
 }
 
+function formatPercent(value: number) {
+	return `${Math.round(value)}%`;
+}
+
+function startOfUtcDay(value: Date) {
+	return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+}
+
+function getStreakStats(eventTimestamps: Date[]) {
+	if (eventTimestamps.length === 0) {
+		return { currentStreak: 0, bestStreak: 0 };
+	}
+
+	const dayKeys = new Set(eventTimestamps.map((value) => startOfUtcDay(value).toISOString()));
+	const sortedDays = Array.from(dayKeys)
+		.map((day) => new Date(day))
+		.sort((a, b) => a.getTime() - b.getTime());
+
+	let bestStreak = 1;
+	let rolling = 1;
+	for (let index = 1; index < sortedDays.length; index += 1) {
+		const deltaDays = Math.round((sortedDays[index].getTime() - sortedDays[index - 1].getTime()) / (1000 * 60 * 60 * 24));
+		if (deltaDays === 1) {
+			rolling += 1;
+		} else {
+			rolling = 1;
+		}
+		bestStreak = Math.max(bestStreak, rolling);
+	}
+
+	let currentStreak = 0;
+	let cursor = startOfUtcDay(new Date());
+	while (dayKeys.has(cursor.toISOString())) {
+		currentStreak += 1;
+		cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
+	}
+
+	return { currentStreak, bestStreak };
+}
+
 function serializeCommitments(
 	commitments: Array<{
 		id: string;
@@ -94,7 +134,10 @@ export default async function TodayPage() {
 		redirect("/login");
 	}
 
-	const [tasks, commitments, overdueCount, googleConnection] = await Promise.all([
+	const now = new Date();
+	const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+	const [tasks, commitments, overdueCount, googleConnection, commitmentsWindowCount, commitmentsWithProofWindowCount, completedWithDueWindowItems, proofSubmittedEvents] = await Promise.all([
 		prisma.task.findMany({
 			where: { ownerId: user.id },
 			include: { commitments: true, tags: { include: { tag: true } } },
@@ -122,11 +165,50 @@ export default async function TodayPage() {
 				},
 			},
 		}),
+		prisma.commitment.count({
+			where: {
+				committedById: user.id,
+				commitAt: { gte: ninetyDaysAgo },
+			},
+		}),
+		prisma.commitment.count({
+			where: {
+				committedById: user.id,
+				commitAt: { gte: ninetyDaysAgo },
+				proofs: { some: {} },
+			},
+		}),
+		prisma.commitment.findMany({
+			where: {
+				committedById: user.id,
+				commitAt: { gte: ninetyDaysAgo },
+				status: "COMPLETED",
+				dueAt: { not: null },
+			},
+			select: {
+				updatedAt: true,
+				dueAt: true,
+			},
+		}),
+		prisma.activityEvent.findMany({
+			where: {
+				actorId: user.id,
+				eventType: "proof.submitted",
+				createdAt: {
+					gte: ninetyDaysAgo,
+				},
+			},
+			select: {
+				createdAt: true,
+			},
+			orderBy: {
+				createdAt: "asc",
+			},
+		}),
 	]);
 
 	const committedTaskIds = new Set(commitments.map((item) => item.taskId));
 	const serializedCommitments = serializeCommitments(commitments);
-	const now = new Date();
 	const oneDayAhead = new Date(now.getTime() + 1000 * 60 * 60 * 24);
 	const atRiskCommitments = commitments.filter((item) => {
 		if (item.status !== "COMMITTED") {
@@ -145,6 +227,12 @@ export default async function TodayPage() {
 			dueAt: task.dueAt ? task.dueAt.toISOString() : null,
 			estimatedMinutes: task.estimatedMinutes,
 		}));
+
+	const proofRate = commitmentsWindowCount === 0 ? 0 : (commitmentsWithProofWindowCount / commitmentsWindowCount) * 100;
+	const completedWithDueWindowCount = completedWithDueWindowItems.length;
+	const completedOnTimeWindowCount = completedWithDueWindowItems.filter((item) => item.dueAt && item.updatedAt <= item.dueAt).length;
+	const onTimeRate = completedWithDueWindowCount === 0 ? 0 : (completedOnTimeWindowCount / completedWithDueWindowCount) * 100;
+	const streakStats = getStreakStats(proofSubmittedEvents.map((event) => event.createdAt));
 
 	return (
 		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
@@ -190,6 +278,19 @@ export default async function TodayPage() {
 								</Card>
 							))
 						)}
+					</CardContent>
+				</Card>
+
+				<Card className='mb-6 py-5'>
+					<CardHeader>
+						<CardTitle className='text-sm font-semibold uppercase tracking-wide'>Accountability Metrics (90d)</CardTitle>
+						<CardDescription>Founder-view metrics for execution reliability and follow-through momentum.</CardDescription>
+					</CardHeader>
+					<CardContent className='grid gap-3 sm:grid-cols-4'>
+						<MetricCard label='On-Time Completion' value={formatPercent(onTimeRate)} valueClassName='text-2xl' />
+						<MetricCard label='Proof Rate' value={formatPercent(proofRate)} valueClassName='text-2xl' />
+						<MetricCard label='Current Proof Streak' value={`${streakStats.currentStreak}d`} valueClassName='text-2xl' />
+						<MetricCard label='Best Proof Streak' value={`${streakStats.bestStreak}d`} valueClassName='text-2xl' />
 					</CardContent>
 				</Card>
 

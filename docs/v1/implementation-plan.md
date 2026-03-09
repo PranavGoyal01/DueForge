@@ -24,12 +24,15 @@
 - Per-block schedule apply diagnostics + retry hooks shipped (`/api/schedule/apply` and `SchedulePlanner` retry flows).
 - Schedule suggestion rationale + confidence persistence shipped (`/api/schedule/suggest` -> `activity_events`) with planner confidence rendering.
 - Nudge + check-in funnel telemetry instrumentation shipped (`checkin.timeline.viewed`, `checkin.scheduled`, `checkin.outcome.logged`, `nudge.sent`, `nudge.failed`, `nudge.dispatch.completed`).
+-   Schedule reconciliation shipped (`/api/schedule/reconcile`) with external conflict scoring + planner diagnostics panel.
+-   In-app + email nudge templates shipped via shared renderer (`src/lib/nudges.ts`) and dispatch integration (`/api/jobs/nudges/dispatch`).
+-   Accountability metrics dashboard shipped on `/today` (on-time completion, proof rate, current streak, best streak over 90 days).
 
 ## Active Slices
 
-- `nudges`: add in-app plus Brevo nudge templates for clearer outreach messages.
-- `schedule`: add reconciliation when external calendar conflicts appear after apply.
-- `metrics`: add founder-facing accountability metrics dashboard from event + commitment activity.
+-   `capture`: improve natural-language due-date parser coverage in quick capture.
+-   `stability`: add baseline observability + error-boundary coverage for beta.
+-   `telemetry`: expand activation + retention funnel instrumentation beyond nudge/check-in flows.
 
 ## Proposed Folder Topology
 

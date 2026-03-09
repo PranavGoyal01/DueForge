@@ -53,6 +53,10 @@ export const scheduleSuggestRequestSchema = z.object({
 	calendarIds: z.array(z.string().min(1)).max(50).optional(),
 });
 
+export const scheduleReconcileRequestSchema = z.object({
+	calendarIds: z.array(z.string().min(1)).max(50).optional(),
+});
+
 export const proofCreateSchema = z.object({
 	commitmentId: z.string().cuid(),
 	type: z.enum(["TEXT", "IMAGE", "LINK", "VIDEO"]).default("TEXT"),
@@ -77,5 +81,6 @@ export type CheckInOutcomeUpdate = z.infer<typeof checkInOutcomeUpdateSchema>;
 export type ScheduleApplyBlock = z.infer<typeof scheduleApplyBlockSchema>;
 export type ScheduleApplyRequest = z.infer<typeof scheduleApplyRequestSchema>;
 export type ScheduleSuggestRequest = z.infer<typeof scheduleSuggestRequestSchema>;
+export type ScheduleReconcileRequest = z.infer<typeof scheduleReconcileRequestSchema>;
 export type ProofCreate = z.infer<typeof proofCreateSchema>;
 export type NudgeDecision = z.infer<typeof nudgeDecisionSchema>;

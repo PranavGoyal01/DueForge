@@ -30,6 +30,17 @@ type ApplyResult = {
 	error?: string;
 };
 
+type ReconcileConflict = {
+	linkId: string;
+	taskId: string;
+	title: string;
+	startAt: string;
+	endAt: string;
+	overlapMinutes: number;
+	severity: "low" | "medium" | "high";
+	recommendation: string;
+};
+
 type SchedulePlannerProps = {
 	tasks: PlannerTask[];
 };
@@ -56,10 +67,13 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 	const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 	const [isSuggesting, setIsSuggesting] = useState(false);
 	const [isApplying, setIsApplying] = useState(false);
+	const [isReconciling, setIsReconciling] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
 	const [calendars, setCalendars] = useState<CalendarItem[]>([]);
 	const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
 	const [lastApplyResults, setLastApplyResults] = useState<ApplyResult[]>([]);
+	const [lastReconcileConflicts, setLastReconcileConflicts] = useState<ReconcileConflict[]>([]);
+	const [lastReconcileCheckedCount, setLastReconcileCheckedCount] = useState(0);
 
 	useEffect(() => {
 		let isCancelled = false;
@@ -224,6 +238,51 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 		await applySchedule(failedBlocks);
 	};
 
+	const reconcileSchedule = async () => {
+		setIsReconciling(true);
+		setMessage(null);
+
+		const response = await fetch("/api/schedule/reconcile", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				calendarIds: selectedCalendarIds,
+			}),
+		});
+
+		if (response.status === 401) {
+			window.location.href = "/login";
+			return;
+		}
+
+		if (!response.ok) {
+			setMessage("Could not reconcile schedule against external calendars.");
+			setIsReconciling(false);
+			return;
+		}
+
+		const body = (await response.json()) as {
+			checkedCount: number;
+			conflictCount: number;
+			externalCalendarCount: number;
+			conflicts: ReconcileConflict[];
+			message?: string;
+		};
+
+		setLastReconcileCheckedCount(body.checkedCount ?? 0);
+		setLastReconcileConflicts(body.conflicts ?? []);
+
+		if (body.message) {
+			setMessage(body.message);
+		} else if ((body.conflictCount ?? 0) === 0) {
+			setMessage(`Reconciliation complete. No conflicts found across ${body.externalCalendarCount ?? 0} external calendars.`);
+		} else {
+			setMessage(`Reconciliation found ${body.conflictCount} conflict(s) across ${body.externalCalendarCount ?? 0} external calendars.`);
+		}
+
+		setIsReconciling(false);
+	};
+
 	if (tasks.length === 0) {
 		return null;
 	}
@@ -302,6 +361,10 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 				<Button type='button' onClick={retryFailed} disabled={isApplying || lastApplyResults.every((result) => result.status !== "failed")} variant='ghost' size='sm'>
 					Retry Failed Blocks
 				</Button>
+
+				<Button type='button' onClick={reconcileSchedule} disabled={isReconciling} variant='secondary' size='sm'>
+					{isReconciling ? "Reconciling..." : "Run Reconciliation"}
+				</Button>
 			</div>
 
 			{message ? <p className='mt-3 px-4 text-xs text-muted-foreground'>{message}</p> : null}
@@ -357,6 +420,29 @@ export function SchedulePlanner({ tasks }: SchedulePlannerProps) {
 							</Card>
 						);
 					})}
+				</div>
+			) : null}
+
+			{lastReconcileCheckedCount > 0 || lastReconcileConflicts.length > 0 ? (
+				<div className='mt-4 space-y-2'>
+					<p className='px-1 text-xs uppercase tracking-wide text-muted-foreground'>Reconciliation Diagnostics</p>
+					<p className='px-1 text-xs text-muted-foreground'>Checked {lastReconcileCheckedCount} upcoming applied block(s).</p>
+					{lastReconcileConflicts.length === 0 ? <p className='px-1 text-xs text-muted-foreground'>No external conflicts detected.</p> : null}
+					{lastReconcileConflicts.map((conflict) => (
+						<Card key={conflict.linkId} size='sm' className='border bg-card/60 py-3'>
+							<CardContent>
+								<div className='flex items-center justify-between gap-2'>
+									<p className='text-sm'>{conflict.title}</p>
+									<Badge variant={conflict.severity === "high" ? "destructive" : conflict.severity === "medium" ? "outline" : "secondary"}>{conflict.severity.toUpperCase()} CONFLICT</Badge>
+								</div>
+								<p className='text-xs text-muted-foreground'>
+									{formatDate(conflict.startAt)} {"->"} {formatDate(conflict.endAt)}
+								</p>
+								<p className='mt-1 text-xs text-muted-foreground'>Overlap: {conflict.overlapMinutes} minute(s)</p>
+								<p className='mt-1 text-xs text-amber-300'>{conflict.recommendation}</p>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			) : null}
 		</Card>

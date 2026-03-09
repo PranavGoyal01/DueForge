@@ -7,6 +7,7 @@ export const telemetryEvents = {
 	CHECKIN_OUTCOME_LOGGED: "checkin.outcome.logged",
 	CHECKIN_TIMELINE_VIEWED: "checkin.timeline.viewed",
 	SCHEDULE_APPLIED: "schedule.applied",
+	SCHEDULE_RECONCILED: "schedule.reconciled",
 	NUDGE_SENT: "nudge.sent",
 	NUDGE_FAILED: "nudge.failed",
 	NUDGE_DISPATCH_COMPLETED: "nudge.dispatch.completed",

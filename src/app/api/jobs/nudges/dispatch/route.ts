@@ -1,21 +1,10 @@
 import { authorizeJobRequest } from "@/lib/job-auth";
 import { sendTransactionalEmail } from "@/lib/mailer";
+import { renderCommitmentNudgeTemplate } from "@/lib/nudges";
 import { prisma } from "@/lib/prisma";
 import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
+import { getAppEnv } from "@/lib/validation/env";
 import { NextResponse } from "next/server";
-
-function formatDate(value: Date | null) {
-	if (!value) {
-		return "No due date";
-	}
-
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	}).format(value);
-}
 
 async function runNudgeDispatch(request: Request) {
 	const auth = await authorizeJobRequest(request);
@@ -48,6 +37,7 @@ async function runNudgeDispatch(request: Request) {
 	let sent = 0;
 	let failed = 0;
 	const touchedUsers = new Set<string>();
+	const appBaseUrl = getAppEnv().APP_BASE_URL;
 
 	for (const reminder of pending) {
 		touchedUsers.add(reminder.user.id);
@@ -77,12 +67,18 @@ async function runNudgeDispatch(request: Request) {
 					continue;
 				}
 
+				const template = renderCommitmentNudgeTemplate({
+					taskTitle: commitment.task.title,
+					dueAt: commitment.dueAt,
+					appBaseUrl,
+				});
+
 				if (reminder.channel === "EMAIL") {
 					await sendTransactionalEmail({
 						to: reminder.user.email,
-						subject: `[DueForge] Follow-through reminder: ${commitment.task.title}`,
-						text: `Your commitment is still open: ${commitment.task.title}. Due: ${formatDate(commitment.dueAt)}. Add proof to close the loop.`,
-						html: `<p>Your commitment is still open:</p><p><strong>${commitment.task.title}</strong></p><p>Due: ${formatDate(commitment.dueAt)}</p><p>Add proof to close the loop.</p>`,
+						subject: template.emailSubject,
+						text: template.emailText,
+						html: template.emailHtml,
 					});
 				}
 
@@ -95,6 +91,10 @@ async function runNudgeDispatch(request: Request) {
 						payloadJson: {
 							channel: reminder.channel,
 							reminderId: reminder.id,
+							templateKey: template.templateKey,
+							risk: template.risk,
+							title: template.title,
+							inAppBody: reminder.channel === "IN_APP" ? template.inAppBody : undefined,
 						},
 					},
 				});
@@ -109,6 +109,8 @@ async function runNudgeDispatch(request: Request) {
 				userId: reminder.user.id,
 				channel: reminder.channel,
 				reminderId: reminder.id,
+				entityType: reminder.entityType,
+				entityId: reminder.entityId,
 			});
 
 			sent += 1;

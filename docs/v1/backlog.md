@@ -14,18 +14,18 @@
 - [x] Add stronger proof submission validation via shared contracts.
 - [x] Add structured daily and weekly check-in templates.
 - [x] Build drift scanner rules and nudge eligibility states.
-- [ ] Add in-app plus Brevo nudge templates.
+- [x] Add in-app plus Brevo nudge templates.
 
 ## Milestone 3 - Scheduling and Calendar (Week 5)
 
 - [x] Add free/busy conflict scoring for schedule suggestions.
 - [x] Persist scheduling rationale and confidence on suggested blocks.
 - [x] Improve apply-to-calendar reliability and retry handling.
-- [ ] Add schedule reconciliation when external event conflicts appear.
+- [x] Add schedule reconciliation when external event conflicts appear.
 
 ## Milestone 4 - Beta Readiness (Week 6)
 
-- [ ] Add accountability metrics dashboard (on-time, proof rate, streaks).
+- [x] Add accountability metrics dashboard (on-time, proof rate, streaks).
 - [ ] Add event telemetry for activation and retention funnels.
 - [ ] Add baseline observability and error boundary coverage.
 - [ ] Run launch checklist and pilot feedback loop.
@@ -39,9 +39,9 @@
 
 ## Next 3 Execution Slices
 
-1. Add schedule reconciliation when external event conflicts appear.
-2. Add in-app plus Brevo nudge templates.
-3. Add accountability metrics dashboard (on-time, proof rate, streaks).
+1. Improve quick capture parser coverage for natural due-date phrasing.
+2. Add baseline observability and error boundary coverage.
+3. Add event telemetry for activation and retention funnels.
 
 ## Excluded from v1
 
