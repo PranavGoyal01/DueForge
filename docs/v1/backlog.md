@@ -6,7 +6,7 @@
 - [x] Add environment validation for production-critical keys.
 - [x] Stabilize auth and account email flows.
 - [x] Ship initial task and commitment CRUD hardening with shared request schemas.
-- [ ] Improve quick capture parser coverage for natural due-date phrasing.
+- [x] Improve quick capture parser coverage for natural due-date phrasing.
 
 ## Milestone 2 - Accountability Core (Week 3-4)
 
@@ -39,9 +39,9 @@
 
 ## Next 3 Execution Slices
 
-1. Improve quick capture parser coverage for natural due-date phrasing.
-2. Add baseline observability and error boundary coverage.
-3. Add event telemetry for activation and retention funnels.
+1. Add baseline observability and error boundary coverage.
+2. Add event telemetry for activation and retention funnels.
+3. Validate daily Hobby cron behavior in production logs and tune times as needed.
 
 ## Excluded from v1
 

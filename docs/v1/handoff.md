@@ -81,14 +81,15 @@ Last updated: 2026-03-08
 - Per-block schedule apply diagnostics and retry hooks shipped via `src/app/api/schedule/apply/route.ts`, `src/components/SchedulePlanner.tsx`, and `src/lib/domain/contracts.ts`.
 - Schedule rationale/confidence persistence shipped via `src/app/api/schedule/suggest/route.ts` and rendered in `src/components/SchedulePlanner.tsx`.
 - Nudge + check-in funnel telemetry instrumentation shipped via `src/lib/telemetry/events.ts`, `src/app/api/checkins/route.ts`, `src/app/api/checkins/[id]/route.ts`, and `src/app/api/jobs/nudges/dispatch/route.ts`.
--   Schedule reconciliation shipped via `src/app/api/schedule/reconcile/route.ts` and `src/components/SchedulePlanner.tsx` with conflict diagnostics.
--   In-app + email nudge templates shipped via `src/lib/nudges.ts` and `src/app/api/jobs/nudges/dispatch/route.ts`.
--   Accountability metrics dashboard shipped on `src/app/(dashboard)/today/page.tsx` (on-time completion, proof rate, proof streaks).
+- Schedule reconciliation shipped via `src/app/api/schedule/reconcile/route.ts` and `src/components/SchedulePlanner.tsx` with conflict diagnostics.
+- In-app + email nudge templates shipped via `src/lib/nudges.ts` and `src/app/api/jobs/nudges/dispatch/route.ts`.
+- Accountability metrics dashboard shipped on `src/app/(dashboard)/today/page.tsx` (on-time completion, proof rate, proof streaks).
+- Quick-capture parser coverage shipped via `src/lib/capture.ts` for richer natural due-date and time phrases.
 
 ## Highest-Priority Next Work
 
-1. Improve quick capture parser coverage for natural due-date phrasing.
-2. Add baseline observability and error boundary coverage.
+1. Add baseline observability and error boundary coverage.
+2. Add event telemetry for activation and retention funnels.
 3. Validate daily Hobby cron behavior in production logs and tune times as needed.
 4. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).
 

@@ -85,20 +85,8 @@ export function renderCommitmentNudgeTemplate(context: NudgeTemplateContext): Re
 
 	const inAppBody = `${context.taskTitle} is still open. Due: ${dueLabel}. Add proof to close the loop.`;
 	const emailSubject = `[DueForge] ${title}: ${context.taskTitle}`;
-	const emailText = [
-		`Task: ${context.taskTitle}`,
-		`Due: ${dueLabel}`,
-		"",
-		"Add proof now to keep your accountability streak intact.",
-		`Open commitments: ${ctaUrl}`,
-	].join("\n");
-	const emailHtml = [
-		`<p><strong>${title}</strong></p>`,
-		`<p><strong>Task:</strong> ${context.taskTitle}</p>`,
-		`<p><strong>Due:</strong> ${dueLabel}</p>`,
-		"<p>Add proof now to keep your accountability streak intact.</p>",
-		`<p><a href=\"${ctaUrl}\">Open commitments</a></p>`,
-	].join("");
+	const emailText = [`Task: ${context.taskTitle}`, `Due: ${dueLabel}`, "", "Add proof now to keep your accountability streak intact.", `Open commitments: ${ctaUrl}`].join("\n");
+	const emailHtml = [`<p><strong>${title}</strong></p>`, `<p><strong>Task:</strong> ${context.taskTitle}</p>`, `<p><strong>Due:</strong> ${dueLabel}</p>`, "<p>Add proof now to keep your accountability streak intact.</p>", `<p><a href=\"${ctaUrl}\">Open commitments</a></p>`].join("");
 
 	return {
 		templateKey,
