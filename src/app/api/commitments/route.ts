@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { commitmentScopeQuerySchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { NextResponse } from "next/server";
 
 function getDateBoundaries() {
@@ -61,6 +62,12 @@ export async function GET(request: Request) {
 			proofs: true,
 		},
 		orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+	});
+
+	logTelemetryEvent(telemetryEvents.RETENTION_COMMITMENTS_VIEWED, {
+		userId: user.id,
+		scope,
+		count: commitments.length,
 	});
 
 	return NextResponse.json({ commitments });

@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { scheduleSuggestRequestSchema } from "@/lib/domain/contracts";
 import { getGoogleBusyIntervalsForCalendars, listGoogleCalendarsForUser } from "@/lib/google-calendar";
+import { createRequestId, reportApiError } from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -76,116 +77,131 @@ function computeConfidence(input: { priority: number; dueAt: Date | null; usedFa
 }
 
 export async function POST(request: Request) {
-	const user = await getSessionUser();
-	if (!user) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-	}
+	const requestId = createRequestId();
+	let userId: string | undefined;
 
-	const payload = await request.json();
-	const parsed = scheduleSuggestRequestSchema.safeParse(payload);
-
-	if (!parsed.success) {
-		return NextResponse.json({ error: "Invalid scheduling payload", issues: parsed.error.flatten() }, { status: 400 });
-	}
-
-	const tasks = await prisma.task.findMany({
-		where: {
-			ownerId: user.id,
-			id: {
-				in: parsed.data.taskIds,
-			},
-		},
-		orderBy: [{ priority: "asc" }, { dueAt: "asc" }],
-	});
-
-	let selectedCalendarIds = parsed.data.calendarIds ?? [];
-	if (selectedCalendarIds.length === 0) {
-		try {
-			const calendars = await listGoogleCalendarsForUser(user.id);
-			selectedCalendarIds = calendars.map((calendar) => calendar.id);
-		} catch {
-			selectedCalendarIds = [];
-		}
-	}
-
-	const timeMin = new Date().toISOString();
-	const timeMax = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-
-	let busyIntervals: Array<{ start: Date; end: Date }> = [];
 	try {
-		const intervals = await getGoogleBusyIntervalsForCalendars(user.id, selectedCalendarIds, timeMin, timeMax);
-		busyIntervals = intervals
-			.map((interval) => ({
-				start: new Date(interval.start),
-				end: new Date(interval.end),
-			}))
-			.sort((a, b) => a.start.getTime() - b.start.getTime());
-	} catch {
-		busyIntervals = [];
-	}
+		const user = await getSessionUser();
+		if (!user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		userId = user.id;
 
-	let slot = nextTopOfHour();
-	const suggestions = tasks.map((task) => {
-		const duration = task.estimatedMinutes ?? 45;
-		const proposal = proposeSlot(duration, busyIntervals, slot);
-		const usedFallback = !proposal;
-		const confidence = computeConfidence({
-			priority: task.priority,
-			dueAt: task.dueAt,
-			usedFallback,
-			calendarCount: selectedCalendarIds.length,
-			durationMinutes: duration,
+		const payload = await request.json();
+		const parsed = scheduleSuggestRequestSchema.safeParse(payload);
+
+		if (!parsed.success) {
+			return NextResponse.json({ error: "Invalid scheduling payload", issues: parsed.error.flatten() }, { status: 400 });
+		}
+
+		const tasks = await prisma.task.findMany({
+			where: {
+				ownerId: user.id,
+				id: {
+					in: parsed.data.taskIds,
+				},
+			},
+			orderBy: [{ priority: "asc" }, { dueAt: "asc" }],
 		});
 
-		if (!proposal) {
-			const fallbackStart = slot.toISOString();
-			const fallbackEnd = new Date(slot.getTime() + duration * 60 * 1000).toISOString();
+		let selectedCalendarIds = parsed.data.calendarIds ?? [];
+		if (selectedCalendarIds.length === 0) {
+			try {
+				const calendars = await listGoogleCalendarsForUser(user.id);
+				selectedCalendarIds = calendars.map((calendar) => calendar.id);
+			} catch {
+				selectedCalendarIds = [];
+			}
+		}
+
+		const timeMin = new Date().toISOString();
+		const timeMax = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+		let busyIntervals: Array<{ start: Date; end: Date }> = [];
+		try {
+			const intervals = await getGoogleBusyIntervalsForCalendars(user.id, selectedCalendarIds, timeMin, timeMax);
+			busyIntervals = intervals
+				.map((interval) => ({
+					start: new Date(interval.start),
+					end: new Date(interval.end),
+				}))
+				.sort((a, b) => a.start.getTime() - b.start.getTime());
+		} catch {
+			busyIntervals = [];
+		}
+
+		let slot = nextTopOfHour();
+		const suggestions = tasks.map((task) => {
+			const duration = task.estimatedMinutes ?? 45;
+			const proposal = proposeSlot(duration, busyIntervals, slot);
+			const usedFallback = !proposal;
+			const confidence = computeConfidence({
+				priority: task.priority,
+				dueAt: task.dueAt,
+				usedFallback,
+				calendarCount: selectedCalendarIds.length,
+				durationMinutes: duration,
+			});
+
+			if (!proposal) {
+				const fallbackStart = slot.toISOString();
+				const fallbackEnd = new Date(slot.getTime() + duration * 60 * 1000).toISOString();
+				return {
+					taskId: task.id,
+					title: task.title,
+					startAt: fallbackStart,
+					endAt: fallbackEnd,
+					reason: "No fully-free slot found in 14-day window; fallback slot suggested.",
+					confidence,
+				};
+			}
+
+			const startAt = proposal.startAt;
+			const endAt = proposal.endAt;
+
+			busyIntervals.push({ start: startAt, end: endAt });
+			slot = new Date(endAt.getTime() + 15 * 60 * 1000);
+
 			return {
 				taskId: task.id,
 				title: task.title,
-				startAt: fallbackStart,
-				endAt: fallbackEnd,
-				reason: "No fully-free slot found in 14-day window; fallback slot suggested.",
+				startAt: startAt.toISOString(),
+				endAt: endAt.toISOString(),
+				reason: "Priority, due date proximity, selected-calendar availability, and focus-time batching.",
 				confidence,
 			};
-		}
+		});
 
-		const startAt = proposal.startAt;
-		const endAt = proposal.endAt;
-
-		busyIntervals.push({ start: startAt, end: endAt });
-		slot = new Date(endAt.getTime() + 15 * 60 * 1000);
-
-		return {
-			taskId: task.id,
-			title: task.title,
-			startAt: startAt.toISOString(),
-			endAt: endAt.toISOString(),
-			reason: "Priority, due date proximity, selected-calendar availability, and focus-time batching.",
-			confidence,
-		};
-	});
-
-	await prisma.activityEvent.create({
-		data: {
-			actorId: user.id,
-			entityType: "schedule",
-			entityId: user.id,
-			eventType: "schedule.suggested",
-			payloadJson: {
-				taskIds: parsed.data.taskIds,
-				selectedCalendarIds,
-				suggestionCount: suggestions.length,
-				suggestions: suggestions.map((item) => ({
-					taskId: item.taskId,
-					startAt: item.startAt,
-					endAt: item.endAt,
-					reason: item.reason,
-					confidence: item.confidence,
-				})),
+		await prisma.activityEvent.create({
+			data: {
+				actorId: user.id,
+				entityType: "schedule",
+				entityId: user.id,
+				eventType: "schedule.suggested",
+				payloadJson: {
+					taskIds: parsed.data.taskIds,
+					selectedCalendarIds,
+					suggestionCount: suggestions.length,
+					suggestions: suggestions.map((item) => ({
+						taskId: item.taskId,
+						startAt: item.startAt,
+						endAt: item.endAt,
+						reason: item.reason,
+						confidence: item.confidence,
+					})),
+				},
 			},
-		},
-	});
+		});
 
-	return NextResponse.json({ suggestions, selectedCalendarIds });
+		return NextResponse.json({ suggestions, selectedCalendarIds });
+	} catch (error) {
+		reportApiError({
+			route: "/api/schedule/suggest",
+			requestId,
+			userId,
+			error,
+		});
+
+		return NextResponse.json({ error: "Internal server error", requestId }, { status: 500 });
+	}
 }

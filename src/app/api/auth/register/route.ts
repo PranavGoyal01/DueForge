@@ -2,6 +2,7 @@ import { sendEmailVerificationEmail } from "@/lib/account-emails";
 import { createAccountToken } from "@/lib/account-tokens";
 import { createSessionToken, getSessionCookieName, getSessionCookieOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { getAppEnv } from "@/lib/validation/env";
 import { AccountTokenType } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -58,6 +59,13 @@ export async function POST(request: Request) {
 			timezone: user.timezone,
 			emailVerified: Boolean(user.emailVerifiedAt),
 		},
+		verificationEmailSent: true,
+	});
+
+	logTelemetryEvent(telemetryEvents.AUTH_REGISTERED, {
+		userId: user.id,
+		emailDomain: normalizedEmail.split("@")[1] ?? null,
+		timezone: user.timezone,
 		verificationEmailSent: true,
 	});
 

@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { taskCreateRequestSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -20,6 +21,11 @@ export async function GET() {
 		take: 100,
 	});
 
+	logTelemetryEvent(telemetryEvents.RETENTION_TASKS_VIEWED, {
+		userId: user.id,
+		count: tasks.length,
+	});
+
 	return NextResponse.json({ tasks });
 }
 
@@ -37,6 +43,11 @@ export async function POST(request: Request) {
 	}
 
 	const { title, details, priority, dueAt, estimatedMinutes, tagNames } = parsed.data;
+	const priorTaskCount = await prisma.task.count({
+		where: {
+			ownerId: user.id,
+		},
+	});
 	const normalizedTagNames = tagNames.map((name) => name.trim()).filter(Boolean);
 	const normalizedTitle = title.trim().toLowerCase();
 
@@ -124,6 +135,15 @@ export async function POST(request: Request) {
 				hasDueDate: Boolean(dueAt),
 			},
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.ACTIVATION_TASK_CREATED, {
+		userId: user.id,
+		taskId: task.id,
+		isFirstTask: priorTaskCount === 0,
+		hasDueDate: Boolean(dueAt),
+		hasTags: normalizedTagNames.length > 0,
+		priority,
 	});
 
 	return NextResponse.json({ task: hydratedTask }, { status: 201 });

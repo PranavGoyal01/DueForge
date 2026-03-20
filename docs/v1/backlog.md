@@ -26,8 +26,8 @@
 ## Milestone 4 - Beta Readiness (Week 6)
 
 - [x] Add accountability metrics dashboard (on-time, proof rate, streaks).
-- [ ] Add event telemetry for activation and retention funnels.
-- [ ] Add baseline observability and error boundary coverage.
+- [x] Add baseline observability and error boundary coverage.
+- [x] Add event telemetry for activation and retention funnels.
 - [ ] Run launch checklist and pilot feedback loop.
 
 ## Growth + Landing (In Progress)
@@ -39,9 +39,9 @@
 
 ## Next 3 Execution Slices
 
-1. Add baseline observability and error boundary coverage.
-2. Add event telemetry for activation and retention funnels.
-3. Validate daily Hobby cron behavior in production logs and tune times as needed.
+1. Add feature request admin inbox view in-app for founder workflow.
+2. Run launch checklist and pilot feedback loop.
+3. Verify launch telemetry baselines after first pilot cohort.
 
 ## Excluded from v1
 

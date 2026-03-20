@@ -1,6 +1,6 @@
 # DueForge v1 Handoff
 
-Last updated: 2026-03-08
+Last updated: 2026-03-19
 
 ## Current Product State
 
@@ -85,13 +85,15 @@ Last updated: 2026-03-08
 - In-app + email nudge templates shipped via `src/lib/nudges.ts` and `src/app/api/jobs/nudges/dispatch/route.ts`.
 - Accountability metrics dashboard shipped on `src/app/(dashboard)/today/page.tsx` (on-time completion, proof rate, proof streaks).
 - Quick-capture parser coverage shipped via `src/lib/capture.ts` for richer natural due-date and time phrases.
+- Baseline observability + error boundary coverage shipped via `src/lib/observability.ts`, `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/(dashboard)/error.tsx`, and request-id API error handling in schedule/check-in routes.
+- Activation + retention telemetry instrumentation shipped via `src/lib/telemetry/events.ts` and auth/task/commitment/proof endpoints (`auth.registered`, `auth.login.succeeded/failed`, `auth.email.verified`, `activation.*`, `retention.*`).
+- Cron validation + tuning support shipped in job routes with `runId`, `durationMs`, and dry-run/manual knobs (`/api/jobs/drift-scan?dryRun=1&lookbackHours=12&horizonHours=24&duplicateWindowHours=12&limit=200`, `/api/jobs/nudges/dispatch?dryRun=1&limit=200`) plus settings ops panel dry-run actions.
 
 ## Highest-Priority Next Work
 
-1. Add baseline observability and error boundary coverage.
-2. Add event telemetry for activation and retention funnels.
-3. Validate daily Hobby cron behavior in production logs and tune times as needed.
-4. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).
+1. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).
+2. Run launch checklist and pilot feedback loop.
+3. Verify baseline funnel and cron telemetry after first pilot cohort.
 
 ## Next-Agent Starter Tasks
 

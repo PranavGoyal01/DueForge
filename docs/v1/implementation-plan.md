@@ -28,12 +28,15 @@
 - In-app + email nudge templates shipped via shared renderer (`src/lib/nudges.ts`) and dispatch integration (`/api/jobs/nudges/dispatch`).
 - Accountability metrics dashboard shipped on `/today` (on-time completion, proof rate, current streak, best streak over 90 days).
 - Quick-capture parser coverage expanded for natural due-date phrases (`today/tomorrow/next week`, `in N days/weeks`, weekdays, month names, slash dates, and time hints like `5pm`, `17:30`, `eod`).
+- Baseline observability + error boundary coverage shipped with global/app/dashboard boundaries and request-id error reporting in key schedule/check-in APIs.
+- Activation + retention telemetry instrumentation shipped across auth and lifecycle milestones (`auth.registered`, `auth.login.succeeded/failed`, `auth.email.verified`, task/commitment/proof activation markers, and task/commitment retention views).
+- Cron validation + tuning controls shipped for drift scan and nudge dispatch with `runId`, `durationMs`, bounded query params (`limit`, `lookbackHours`, `horizonHours`, `duplicateWindowHours`), and `dryRun=1` support from settings ops panel.
 
 ## Active Slices
 
-- `stability`: add baseline observability + error-boundary coverage for beta.
-- `telemetry`: expand activation + retention funnel instrumentation beyond nudge/check-in flows.
-- `ops`: validate production Hobby cron behavior and tune drift/nudge schedule windows.
+- `founder-loop`: add in-app feature-request inbox view for triage workflow.
+- `launch-readiness`: run launch checklist and pilot feedback loop.
+- `post-pilot-telemetry`: verify baseline funnel and cron telemetry after first pilot cohort.
 
 ## Proposed Folder Topology
 

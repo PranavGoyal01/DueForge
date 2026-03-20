@@ -1,5 +1,6 @@
 import { createSessionToken, getSessionCookieName, getSessionCookieOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,11 +23,20 @@ export async function POST(request: Request) {
 	});
 
 	if (!user?.passwordHash) {
+		logTelemetryEvent(telemetryEvents.AUTH_LOGIN_FAILED, {
+			emailDomain: parsed.data.email.toLowerCase().trim().split("@")[1] ?? null,
+			reason: "user_not_found",
+		});
 		return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 	}
 
 	const passwordMatches = await bcrypt.compare(parsed.data.password, user.passwordHash);
 	if (!passwordMatches) {
+		logTelemetryEvent(telemetryEvents.AUTH_LOGIN_FAILED, {
+			userId: user.id,
+			emailDomain: user.email.split("@")[1] ?? null,
+			reason: "password_mismatch",
+		});
 		return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 	}
 
@@ -39,6 +49,12 @@ export async function POST(request: Request) {
 			timezone: user.timezone,
 			emailVerified: Boolean(user.emailVerifiedAt),
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.AUTH_LOGIN_SUCCEEDED, {
+		userId: user.id,
+		emailVerified: Boolean(user.emailVerifiedAt),
+		timezone: user.timezone,
 	});
 
 	response.cookies.set(getSessionCookieName(), token, getSessionCookieOptions());

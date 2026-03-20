@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { proofCreateSchema } from "@/lib/domain/contracts";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { CommitmentStatus, TaskStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -34,6 +35,12 @@ export async function POST(request: Request, context: RouteContext) {
 	if (!commitment) {
 		return NextResponse.json({ error: "Commitment not found" }, { status: 404 });
 	}
+
+	const priorProofCount = await prisma.proof.count({
+		where: {
+			submittedById: user.id,
+		},
+	});
 
 	const proof = await prisma.$transaction(async (tx) => {
 		const createdProof = await tx.proof.create({
@@ -71,6 +78,15 @@ export async function POST(request: Request, context: RouteContext) {
 				markCompleted: parsed.data.markCompleted,
 			},
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.ACTIVATION_PROOF_SUBMITTED, {
+		userId: user.id,
+		proofId: proof.id,
+		commitmentId: id,
+		isFirstProof: priorProofCount === 0,
+		proofType: proof.type,
+		markCompleted: parsed.data.markCompleted,
 	});
 
 	return NextResponse.json({ proof }, { status: 201 });

@@ -7,7 +7,7 @@ import { useState } from "react";
 
 type OpsSummary = {
 	label: string;
-	payload: Record<string, number>;
+	payload: Record<string, unknown>;
 };
 
 export function OpsRunPanel() {
@@ -16,11 +16,13 @@ export function OpsRunPanel() {
 	const [summary, setSummary] = useState<OpsSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
-	async function run(path: string, label: string, setLoading: (value: boolean) => void) {
+	async function run(path: string, label: string, setLoading: (value: boolean) => void, options?: { dryRun?: boolean }) {
 		setLoading(true);
 		setError(null);
 
-		const response = await fetch(path, {
+		const target = options?.dryRun ? `${path}?dryRun=1` : path;
+
+		const response = await fetch(target, {
 			method: "POST",
 		});
 
@@ -31,7 +33,7 @@ export function OpsRunPanel() {
 			return;
 		}
 
-		const payload = (await response.json()) as Record<string, number>;
+		const payload = (await response.json()) as Record<string, unknown>;
 		setSummary({ label, payload });
 		setLoading(false);
 	}
@@ -45,8 +47,14 @@ export function OpsRunPanel() {
 					<Button type='button' onClick={() => run("/api/jobs/drift-scan", "Drift Scan", setIsScanning)} disabled={isScanning || isDispatching} size='sm'>
 						{isScanning ? "Running Drift Scan..." : "Run Drift Scan"}
 					</Button>
+					<Button type='button' onClick={() => run("/api/jobs/drift-scan", "Drift Scan (Dry Run)", setIsScanning, { dryRun: true })} disabled={isScanning || isDispatching} variant='outline' size='sm'>
+						{isScanning ? "Running Dry Run..." : "Dry Run Drift Scan"}
+					</Button>
 					<Button type='button' onClick={() => run("/api/jobs/nudges/dispatch", "Nudge Dispatch", setIsDispatching)} disabled={isScanning || isDispatching} variant='outline' size='sm'>
 						{isDispatching ? "Dispatching..." : "Dispatch Nudges"}
+					</Button>
+					<Button type='button' onClick={() => run("/api/jobs/nudges/dispatch", "Nudge Dispatch (Dry Run)", setIsDispatching, { dryRun: true })} disabled={isScanning || isDispatching} variant='outline' size='sm'>
+						{isDispatching ? "Running Dry Run..." : "Dry Run Dispatch"}
 					</Button>
 				</div>
 
@@ -59,7 +67,7 @@ export function OpsRunPanel() {
 							<div className='mt-2 grid gap-2 md:grid-cols-3'>
 								{Object.entries(summary.payload).map(([key, value]) => (
 									<p key={key} className='text-xs'>
-										{key}: {value}
+										{key}: {typeof value === "object" ? JSON.stringify(value) : String(value)}
 									</p>
 								))}
 							</div>

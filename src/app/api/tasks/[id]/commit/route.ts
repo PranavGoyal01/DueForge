@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { ensureRelationshipForUser } from "@/lib/bootstrap";
 import { prisma } from "@/lib/prisma";
+import { logTelemetryEvent, telemetryEvents } from "@/lib/telemetry/events";
 import { CommitmentVisibility } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -29,6 +30,11 @@ export async function POST(request: Request, context: RouteContext) {
 	}
 
 	const relationship = await ensureRelationshipForUser(user.id);
+	const priorCommitmentCount = await prisma.commitment.count({
+		where: {
+			committedById: user.id,
+		},
+	});
 
 	const task = await prisma.task.findFirst({
 		where: {
@@ -66,6 +72,15 @@ export async function POST(request: Request, context: RouteContext) {
 				taskId: task.id,
 			},
 		},
+	});
+
+	logTelemetryEvent(telemetryEvents.ACTIVATION_COMMITMENT_CREATED, {
+		userId: user.id,
+		commitmentId: commitment.id,
+		taskId: task.id,
+		isFirstCommitment: priorCommitmentCount === 0,
+		hasDeadline: Boolean(commitment.dueAt),
+		visibilityScope: commitment.visibilityScope,
 	});
 
 	return NextResponse.json({ commitment }, { status: 201 });
