@@ -21,54 +21,11 @@ export async function GET(request: Request) {
 	const scope = commitmentScopeQuerySchema.parse(url.searchParams.get("scope") ?? "week");
 	const { now, weekAhead } = getDateBoundaries();
 
-	const whereByScope =
-		scope === "today"
-			? {
-					dueAt: {
-						gte: new Date(new Date().setHours(0, 0, 0, 0)),
-						lte: new Date(new Date().setHours(23, 59, 59, 999)),
-					},
-				}
-			: scope === "at_risk"
-				? {
-						OR: [
-							{
-								dueAt: {
-									lte: new Date(now.getTime() + 1000 * 60 * 60 * 24),
-								},
-							},
-							{
-								proofs: {
-									none: {},
-								},
-							},
-						],
-					}
-				: {
-						dueAt: {
-							gte: now,
-							lte: weekAhead,
-						},
-					};
+	const whereByScope = scope === "today" ? { dueAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)), lte: new Date(new Date().setHours(23, 59, 59, 999)) } } : scope === "at_risk" ? { OR: [{ dueAt: { lte: new Date(now.getTime() + 1000 * 60 * 60 * 24) } }, { proofs: { none: {} } }] } : { dueAt: { gte: now, lte: weekAhead } };
 
-	const commitments = await prisma.commitment.findMany({
-		where: {
-			committedById: user.id,
-			...whereByScope,
-		},
-		include: {
-			task: true,
-			committedTo: true,
-			proofs: true,
-		},
-		orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
-	});
+	const commitments = await prisma.commitment.findMany({ where: { committedById: user.id, ...whereByScope }, include: { task: true, committedTo: true, proofs: true }, orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }] });
 
-	logTelemetryEvent(telemetryEvents.RETENTION_COMMITMENTS_VIEWED, {
-		userId: user.id,
-		scope,
-		count: commitments.length,
-	});
+	logTelemetryEvent(telemetryEvents.RETENTION_COMMITMENTS_VIEWED, { userId: user.id, scope, count: commitments.length });
 
 	return NextResponse.json({ commitments });
 }

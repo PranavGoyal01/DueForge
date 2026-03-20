@@ -4,20 +4,13 @@ import { Button } from "@/components/ui/button";
 import { createRequestId, reportUiError } from "@/lib/observability";
 import { useEffect, useMemo } from "react";
 
-type ErrorPageProps = {
-	error: Error & { digest?: string };
-	reset: () => void;
-};
+type ErrorPageProps = { error: Error & { digest?: string }; reset: () => void };
 
 export default function AppErrorPage({ error, reset }: ErrorPageProps) {
 	const requestId = useMemo(() => createRequestId(), []);
 
 	useEffect(() => {
-		reportUiError({
-			surface: "app-root",
-			requestId,
-			error,
-		});
+		reportUiError({ surface: "app-root", requestId, error });
 	}, [error, requestId]);
 
 	return (
@@ -28,7 +21,9 @@ export default function AppErrorPage({ error, reset }: ErrorPageProps) {
 				<p className='df-muted text-sm'>Use retry to render again. If this keeps happening, include request id {requestId} when reporting.</p>
 				<div className='flex gap-3 pt-1'>
 					<Button onClick={reset}>Retry</Button>
-					<Button variant='outline' onClick={() => window.location.assign("/today")}>Go to command center</Button>
+					<Button variant='outline' onClick={() => window.location.assign("/today")}>
+						Go to command center
+					</Button>
 				</div>
 			</div>
 		</div>

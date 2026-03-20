@@ -47,35 +47,7 @@ async function runDriftScan(request: Request) {
 	const duplicateWindow = new Date(now.getTime() - duplicateWindowHours * 60 * 60 * 1000);
 
 	try {
-		const atRiskCommitments = await prisma.commitment.findMany({
-			where: {
-				status: "COMMITTED",
-				dueAt: {
-					gte: lookback,
-					lte: horizon,
-				},
-				proofs: {
-					none: {},
-				},
-				...(auth.mode === "user" ? { committedById: auth.user.id } : {}),
-			},
-			include: {
-				task: {
-					select: {
-						title: true,
-					},
-				},
-				committedBy: {
-					select: {
-						id: true,
-					},
-				},
-			},
-			orderBy: {
-				dueAt: "asc",
-			},
-			take: batchLimit,
-		});
+		const atRiskCommitments = await prisma.commitment.findMany({ where: { status: "COMMITTED", dueAt: { gte: lookback, lte: horizon }, proofs: { none: {} }, ...(auth.mode === "user" ? { committedById: auth.user.id } : {}) }, include: { task: { select: { title: true } }, committedBy: { select: { id: true } } }, orderBy: { dueAt: "asc" }, take: batchLimit });
 
 		let queuedInApp = 0;
 		let queuedEmail = 0;
@@ -85,135 +57,38 @@ async function runDriftScan(request: Request) {
 			const userId = commitment.committedBy.id;
 			touchedUsers.add(userId);
 
-			const existingInApp = await prisma.reminder.findFirst({
-				where: {
-					userId,
-					entityType: "commitment",
-					entityId: commitment.id,
-					channel: "IN_APP",
-					status: {
-						in: ["pending", "sent"],
-					},
-					createdAt: {
-						gte: duplicateWindow,
-					},
-				},
-			});
+			const existingInApp = await prisma.reminder.findFirst({ where: { userId, entityType: "commitment", entityId: commitment.id, channel: "IN_APP", status: { in: ["pending", "sent"] }, createdAt: { gte: duplicateWindow } } });
 
 			if (!existingInApp) {
 				if (!dryRun) {
-					await prisma.reminder.create({
-						data: {
-							userId,
-							entityType: "commitment",
-							entityId: commitment.id,
-							channel: "IN_APP",
-							sendAt: now,
-						},
-					});
+					await prisma.reminder.create({ data: { userId, entityType: "commitment", entityId: commitment.id, channel: "IN_APP", sendAt: now } });
 				}
 				queuedInApp += 1;
 			}
 
-			const existingEmail = await prisma.reminder.findFirst({
-				where: {
-					userId,
-					entityType: "commitment",
-					entityId: commitment.id,
-					channel: "EMAIL",
-					status: {
-						in: ["pending", "sent"],
-					},
-					createdAt: {
-						gte: duplicateWindow,
-					},
-				},
-			});
+			const existingEmail = await prisma.reminder.findFirst({ where: { userId, entityType: "commitment", entityId: commitment.id, channel: "EMAIL", status: { in: ["pending", "sent"] }, createdAt: { gte: duplicateWindow } } });
 
 			if (!existingEmail) {
 				if (!dryRun) {
-					await prisma.reminder.create({
-						data: {
-							userId,
-							entityType: "commitment",
-							entityId: commitment.id,
-							channel: "EMAIL",
-							sendAt: now,
-						},
-					});
+					await prisma.reminder.create({ data: { userId, entityType: "commitment", entityId: commitment.id, channel: "EMAIL", sendAt: now } });
 				}
 				queuedEmail += 1;
 			}
 
 			if (!dryRun) {
-				await prisma.activityEvent.create({
-					data: {
-						actorId: userId,
-						entityType: "commitment",
-						entityId: commitment.id,
-						eventType: "nudge.queued",
-						payloadJson: {
-							taskTitle: commitment.task.title,
-							dueAt: commitment.dueAt,
-							runId,
-						},
-					},
-				});
+				await prisma.activityEvent.create({ data: { actorId: userId, entityType: "commitment", entityId: commitment.id, eventType: "nudge.queued", payloadJson: { taskTitle: commitment.task.title, dueAt: commitment.dueAt, runId } } });
 			}
 		}
 
 		const durationMs = Date.now() - startedAt;
-		logTelemetryEvent(telemetryEvents.DRIFT_SCAN_COMPLETED, {
-			runId,
-			mode: auth.mode,
-			dryRun,
-			lookbackHours,
-			horizonHours,
-			duplicateWindowHours,
-			batchLimit,
-			atRiskCommitments: atRiskCommitments.length,
-			queuedInApp,
-			queuedEmail,
-			affectedUsers: touchedUsers.size,
-			durationMs,
-		});
+		logTelemetryEvent(telemetryEvents.DRIFT_SCAN_COMPLETED, { runId, mode: auth.mode, dryRun, lookbackHours, horizonHours, duplicateWindowHours, batchLimit, atRiskCommitments: atRiskCommitments.length, queuedInApp, queuedEmail, affectedUsers: touchedUsers.size, durationMs });
 
-		return NextResponse.json({
-			runId,
-			mode: auth.mode,
-			dryRun,
-			lookbackHours,
-			horizonHours,
-			duplicateWindowHours,
-			batchLimit,
-			queued: queuedInApp + queuedEmail,
-			queuedInApp,
-			queuedEmail,
-			atRiskCommitments: atRiskCommitments.length,
-			affectedUsers: touchedUsers.size,
-			durationMs,
-		});
+		return NextResponse.json({ runId, mode: auth.mode, dryRun, lookbackHours, horizonHours, duplicateWindowHours, batchLimit, queued: queuedInApp + queuedEmail, queuedInApp, queuedEmail, atRiskCommitments: atRiskCommitments.length, affectedUsers: touchedUsers.size, durationMs });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Unknown drift scan error";
-		logTelemetryEvent(telemetryEvents.DRIFT_SCAN_FAILED, {
-			runId,
-			mode: auth.mode,
-			dryRun,
-			lookbackHours,
-			horizonHours,
-			duplicateWindowHours,
-			batchLimit,
-			message,
-		});
+		logTelemetryEvent(telemetryEvents.DRIFT_SCAN_FAILED, { runId, mode: auth.mode, dryRun, lookbackHours, horizonHours, duplicateWindowHours, batchLimit, message });
 
-		return NextResponse.json(
-			{
-				error: "Drift scan failed",
-				runId,
-				message,
-				},
-			{ status: 500 },
-		);
+		return NextResponse.json({ error: "Drift scan failed", runId, message }, { status: 500 });
 	}
 }
 

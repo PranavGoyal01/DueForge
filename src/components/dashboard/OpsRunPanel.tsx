@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 
-type OpsSummary = {
-	label: string;
-	payload: Record<string, unknown>;
-};
+type OpsSummary = { label: string; payload: Record<string, unknown> };
 
 export function OpsRunPanel() {
 	const [isScanning, setIsScanning] = useState(false);
@@ -22,9 +19,7 @@ export function OpsRunPanel() {
 
 		const target = options?.dryRun ? `${path}?dryRun=1` : path;
 
-		const response = await fetch(target, {
-			method: "POST",
-		});
+		const response = await fetch(target, { method: "POST" });
 
 		if (!response.ok) {
 			setSummary(null);

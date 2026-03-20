@@ -18,14 +18,9 @@ export async function GET(request: Request) {
 		return NextResponse.redirect(new URL("/login?verified=invalid", request.url));
 	}
 
-	await prisma.user.update({
-		where: { id: consumed.userId },
-		data: { emailVerifiedAt: new Date() },
-	});
+	await prisma.user.update({ where: { id: consumed.userId }, data: { emailVerifiedAt: new Date() } });
 
-	logTelemetryEvent(telemetryEvents.AUTH_EMAIL_VERIFIED, {
-		userId: consumed.userId,
-	});
+	logTelemetryEvent(telemetryEvents.AUTH_EMAIL_VERIFIED, { userId: consumed.userId });
 
 	return NextResponse.redirect(new URL("/login?verified=success", request.url));
 }

@@ -94,15 +94,7 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Invalid scheduling payload", issues: parsed.error.flatten() }, { status: 400 });
 		}
 
-		const tasks = await prisma.task.findMany({
-			where: {
-				ownerId: user.id,
-				id: {
-					in: parsed.data.taskIds,
-				},
-			},
-			orderBy: [{ priority: "asc" }, { dueAt: "asc" }],
-		});
+		const tasks = await prisma.task.findMany({ where: { ownerId: user.id, id: { in: parsed.data.taskIds } }, orderBy: [{ priority: "asc" }, { dueAt: "asc" }] });
 
 		let selectedCalendarIds = parsed.data.calendarIds ?? [];
 		if (selectedCalendarIds.length === 0) {
@@ -120,12 +112,7 @@ export async function POST(request: Request) {
 		let busyIntervals: Array<{ start: Date; end: Date }> = [];
 		try {
 			const intervals = await getGoogleBusyIntervalsForCalendars(user.id, selectedCalendarIds, timeMin, timeMax);
-			busyIntervals = intervals
-				.map((interval) => ({
-					start: new Date(interval.start),
-					end: new Date(interval.end),
-				}))
-				.sort((a, b) => a.start.getTime() - b.start.getTime());
+			busyIntervals = intervals.map((interval) => ({ start: new Date(interval.start), end: new Date(interval.end) })).sort((a, b) => a.start.getTime() - b.start.getTime());
 		} catch {
 			busyIntervals = [];
 		}
@@ -135,25 +122,12 @@ export async function POST(request: Request) {
 			const duration = task.estimatedMinutes ?? 45;
 			const proposal = proposeSlot(duration, busyIntervals, slot);
 			const usedFallback = !proposal;
-			const confidence = computeConfidence({
-				priority: task.priority,
-				dueAt: task.dueAt,
-				usedFallback,
-				calendarCount: selectedCalendarIds.length,
-				durationMinutes: duration,
-			});
+			const confidence = computeConfidence({ priority: task.priority, dueAt: task.dueAt, usedFallback, calendarCount: selectedCalendarIds.length, durationMinutes: duration });
 
 			if (!proposal) {
 				const fallbackStart = slot.toISOString();
 				const fallbackEnd = new Date(slot.getTime() + duration * 60 * 1000).toISOString();
-				return {
-					taskId: task.id,
-					title: task.title,
-					startAt: fallbackStart,
-					endAt: fallbackEnd,
-					reason: "No fully-free slot found in 14-day window; fallback slot suggested.",
-					confidence,
-				};
+				return { taskId: task.id, title: task.title, startAt: fallbackStart, endAt: fallbackEnd, reason: "No fully-free slot found in 14-day window; fallback slot suggested.", confidence };
 			}
 
 			const startAt = proposal.startAt;
@@ -162,45 +136,14 @@ export async function POST(request: Request) {
 			busyIntervals.push({ start: startAt, end: endAt });
 			slot = new Date(endAt.getTime() + 15 * 60 * 1000);
 
-			return {
-				taskId: task.id,
-				title: task.title,
-				startAt: startAt.toISOString(),
-				endAt: endAt.toISOString(),
-				reason: "Priority, due date proximity, selected-calendar availability, and focus-time batching.",
-				confidence,
-			};
+			return { taskId: task.id, title: task.title, startAt: startAt.toISOString(), endAt: endAt.toISOString(), reason: "Priority, due date proximity, selected-calendar availability, and focus-time batching.", confidence };
 		});
 
-		await prisma.activityEvent.create({
-			data: {
-				actorId: user.id,
-				entityType: "schedule",
-				entityId: user.id,
-				eventType: "schedule.suggested",
-				payloadJson: {
-					taskIds: parsed.data.taskIds,
-					selectedCalendarIds,
-					suggestionCount: suggestions.length,
-					suggestions: suggestions.map((item) => ({
-						taskId: item.taskId,
-						startAt: item.startAt,
-						endAt: item.endAt,
-						reason: item.reason,
-						confidence: item.confidence,
-					})),
-				},
-			},
-		});
+		await prisma.activityEvent.create({ data: { actorId: user.id, entityType: "schedule", entityId: user.id, eventType: "schedule.suggested", payloadJson: { taskIds: parsed.data.taskIds, selectedCalendarIds, suggestionCount: suggestions.length, suggestions: suggestions.map((item) => ({ taskId: item.taskId, startAt: item.startAt, endAt: item.endAt, reason: item.reason, confidence: item.confidence })) } } });
 
 		return NextResponse.json({ suggestions, selectedCalendarIds });
 	} catch (error) {
-		reportApiError({
-			route: "/api/schedule/suggest",
-			requestId,
-			userId,
-			error,
-		});
+		reportApiError({ route: "/api/schedule/suggest", requestId, userId, error });
 
 		return NextResponse.json({ error: "Internal server error", requestId }, { status: 500 });
 	}

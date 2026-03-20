@@ -4,20 +4,13 @@ import { Button } from "@/components/ui/button";
 import { createRequestId, reportUiError } from "@/lib/observability";
 import { useEffect, useMemo } from "react";
 
-type GlobalErrorProps = {
-	error: Error & { digest?: string };
-	reset: () => void;
-};
+type GlobalErrorProps = { error: Error & { digest?: string }; reset: () => void };
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
 	const requestId = useMemo(() => createRequestId(), []);
 
 	useEffect(() => {
-		reportUiError({
-			surface: "global-root",
-			requestId,
-			error,
-		});
+		reportUiError({ surface: "global-root", requestId, error });
 	}, [error, requestId]);
 
 	return (
@@ -30,7 +23,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 						<p className='df-muted text-sm'>Try a full app reset first. If the issue persists, share request id {requestId}.</p>
 						<div className='flex gap-3 pt-1'>
 							<Button onClick={reset}>Reset app</Button>
-							<Button variant='outline' onClick={() => window.location.assign("/")}>Return home</Button>
+							<Button variant='outline' onClick={() => window.location.assign("/")}>
+								Return home
+							</Button>
 						</div>
 					</div>
 				</div>

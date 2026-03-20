@@ -4,20 +4,13 @@ import { Button } from "@/components/ui/button";
 import { createRequestId, reportUiError } from "@/lib/observability";
 import { useEffect, useMemo } from "react";
 
-type DashboardErrorProps = {
-	error: Error & { digest?: string };
-	reset: () => void;
-};
+type DashboardErrorProps = { error: Error & { digest?: string }; reset: () => void };
 
 export default function DashboardError({ error, reset }: DashboardErrorProps) {
 	const requestId = useMemo(() => createRequestId(), []);
 
 	useEffect(() => {
-		reportUiError({
-			surface: "dashboard-shell",
-			requestId,
-			error,
-		});
+		reportUiError({ surface: "dashboard-shell", requestId, error });
 	}, [error, requestId]);
 
 	return (
@@ -28,7 +21,9 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
 				<p className='df-muted text-sm'>Try reloading this area. If it repeats, include request id {requestId} in bug reports.</p>
 				<div className='flex gap-3'>
 					<Button onClick={reset}>Retry section</Button>
-					<Button variant='outline' onClick={() => window.location.assign("/today")}>Go to today</Button>
+					<Button variant='outline' onClick={() => window.location.assign("/today")}>
+						Go to today
+					</Button>
 				</div>
 			</div>
 		</div>

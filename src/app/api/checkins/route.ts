@@ -24,41 +24,13 @@ export async function GET() {
 		const twoWeeks = new Date(now);
 		twoWeeks.setDate(now.getDate() + 14);
 
-		const checkIns = await prisma.checkIn.findMany({
-			where: {
-				relationship: {
-					userId: user.id,
-				},
-				scheduledAt: {
-					gte: now,
-					lte: twoWeeks,
-				},
-			},
-			include: {
-				relationship: {
-					include: {
-						partnerUser: true,
-					},
-				},
-			},
-			orderBy: {
-				scheduledAt: "asc",
-			},
-		});
+		const checkIns = await prisma.checkIn.findMany({ where: { relationship: { userId: user.id }, scheduledAt: { gte: now, lte: twoWeeks } }, include: { relationship: { include: { partnerUser: true } } }, orderBy: { scheduledAt: "asc" } });
 
-		logTelemetryEvent(telemetryEvents.CHECKIN_TIMELINE_VIEWED, {
-			userId: user.id,
-			upcomingCount: checkIns.length,
-		});
+		logTelemetryEvent(telemetryEvents.CHECKIN_TIMELINE_VIEWED, { userId: user.id, upcomingCount: checkIns.length });
 
 		return NextResponse.json({ checkIns });
 	} catch (error) {
-		reportApiError({
-			route: "/api/checkins",
-			requestId,
-			userId,
-			error,
-		});
+		reportApiError({ route: "/api/checkins", requestId, userId, error });
 
 		return NextResponse.json({ error: "Internal server error", requestId }, { status: 500 });
 	}
@@ -88,43 +60,15 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: "Relationship unavailable" }, { status: 400 });
 		}
 
-		const checkIn = await prisma.checkIn.create({
-			data: {
-				relationshipId: relationship.id,
-				scheduledAt: new Date(parsed.data.scheduledAt),
-				mode: parsed.data.mode,
-				agenda: parsed.data.agenda,
-			},
-		});
+		const checkIn = await prisma.checkIn.create({ data: { relationshipId: relationship.id, scheduledAt: new Date(parsed.data.scheduledAt), mode: parsed.data.mode, agenda: parsed.data.agenda } });
 
-		await prisma.activityEvent.create({
-			data: {
-				actorId: user.id,
-				entityType: "checkin",
-				entityId: checkIn.id,
-				eventType: "checkin.scheduled",
-				payloadJson: {
-					scheduledAt: checkIn.scheduledAt,
-				},
-			},
-		});
+		await prisma.activityEvent.create({ data: { actorId: user.id, entityType: "checkin", entityId: checkIn.id, eventType: "checkin.scheduled", payloadJson: { scheduledAt: checkIn.scheduledAt } } });
 
-		logTelemetryEvent(telemetryEvents.CHECKIN_SCHEDULED, {
-			userId: user.id,
-			checkInId: checkIn.id,
-			mode: checkIn.mode,
-			hasAgenda: Boolean(checkIn.agenda),
-			scheduledAt: checkIn.scheduledAt.toISOString(),
-		});
+		logTelemetryEvent(telemetryEvents.CHECKIN_SCHEDULED, { userId: user.id, checkInId: checkIn.id, mode: checkIn.mode, hasAgenda: Boolean(checkIn.agenda), scheduledAt: checkIn.scheduledAt.toISOString() });
 
 		return NextResponse.json({ checkIn }, { status: 201 });
 	} catch (error) {
-		reportApiError({
-			route: "/api/checkins",
-			requestId,
-			userId,
-			error,
-		});
+		reportApiError({ route: "/api/checkins", requestId, userId, error });
 
 		return NextResponse.json({ error: "Internal server error", requestId }, { status: 500 });
 	}
