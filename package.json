@@ -14,7 +14,9 @@
 		"db:migrate:deploy": "prisma migrate deploy",
 		"db:bootstrap-sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
 		"db:studio": "prisma studio",
-		"deploy:check": "node scripts/deploy-check.mjs"
+		"deploy:check": "node scripts/deploy-check.mjs",
+		"pilot:cron-check": "node scripts/pilot-cron-check.mjs",
+		"pilot:cron-check:live": "node scripts/pilot-cron-check.mjs --live"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.2.0",

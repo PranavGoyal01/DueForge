@@ -54,6 +54,5 @@
 
 ## Immediate Focus (Next Iterations)
 
-- Replace remaining dashboard placeholders (`/checkins`, `/schedule`, `/settings`) with real data views.
-- Add robust telemetry coverage for activation and execution funnel events.
-- Add recurring drift scans and nudge dispatch to close accountability loops.
+- Finalize launch-readiness checklist and pilot onboarding script before external tester invites.
+- Validate week-1 telemetry baselines (`auth.*`, `activation.*`, `retention.*`, cron run events) and set go/no-go thresholds.

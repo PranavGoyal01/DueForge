@@ -7,14 +7,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const featureRequestSchema = z.object({
-	title: z.string().trim().min(5).max(140),
-	problem: z.string().trim().min(10).max(1200),
-	impact: z.string().trim().min(10).max(1200),
-	name: z.string().trim().max(80).optional(),
-	email: z.string().trim().email().max(255).optional(),
-	source: z.enum(["demo", "landing"]).default("demo"),
-});
+const featureRequestSchema = z.object({ title: z.string().trim().min(5).max(140), problem: z.string().trim().min(10).max(1200), impact: z.string().trim().min(10).max(1200), name: z.string().trim().max(80).optional(), email: z.string().trim().email().max(255).optional(), source: z.enum(["demo", "landing"]).default("demo") });
 
 export async function POST(request: Request) {
 	const payload = await request.json().catch(() => null);
@@ -27,40 +20,19 @@ export async function POST(request: Request) {
 	const requestId = randomUUID();
 	const user = await getSessionUser();
 	const data = parsed.data;
+	const forwardedFor = request.headers.get("x-forwarded-for");
+	const clientIp = forwardedFor ? forwardedFor.split(",")[0]?.trim() : null;
+	const userAgent = request.headers.get("user-agent");
+
+	await prisma.featureRequest.create({ data: { requestId, actorId: user?.id, source: data.source, title: data.title, problem: data.problem, impact: data.impact, name: data.name, email: data.email, metadataJson: { authenticated: Boolean(user), userAgent, clientIp } } });
 
 	if (user) {
-		await prisma.activityEvent.create({
-			data: {
-				actorId: user.id,
-				entityType: "feature_request",
-				entityId: requestId,
-				eventType: "feature.requested",
-				payloadJson: {
-					title: data.title,
-					problem: data.problem,
-					impact: data.impact,
-					source: data.source,
-					email: data.email,
-					name: data.name,
-				},
-			},
-		});
+		await prisma.activityEvent.create({ data: { actorId: user.id, entityType: "feature_request", entityId: requestId, eventType: "feature.requested", payloadJson: { title: data.title, problem: data.problem, impact: data.impact, source: data.source, email: data.email, name: data.name } } });
 	} else {
-		console.info("[feature-request]", {
-			requestId,
-			title: data.title,
-			source: data.source,
-			email: data.email,
-			name: data.name,
-		});
+		console.info("[feature-request]", { requestId, title: data.title, source: data.source, email: data.email, name: data.name });
 	}
 
-	logTelemetryEvent(telemetryEvents.FEATURE_REQUESTED, {
-		requestId,
-		source: data.source,
-		authenticated: Boolean(user),
-		hasEmail: Boolean(data.email),
-	});
+	logTelemetryEvent(telemetryEvents.FEATURE_REQUESTED, { requestId, source: data.source, authenticated: Boolean(user), hasEmail: Boolean(data.email), persisted: true });
 
 	const env = getAppEnv();
 	const recipient = env.FEATURE_REQUEST_RECIPIENT;

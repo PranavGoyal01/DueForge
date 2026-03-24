@@ -71,6 +71,7 @@ model User {
   reminders            Reminder[]
   calendarConnections  CalendarConnection[]
   activityEvents       ActivityEvent[]
+  featureRequests      FeatureRequest[]
   accountTokens        AccountToken[]
   relationshipsAsUser  AccountabilityRelationship[] @relation("RelationshipUser")
   relationshipsAsPeer  AccountabilityRelationship[] @relation("RelationshipPeer")
@@ -243,4 +244,22 @@ model ActivityEvent {
   payloadJson Json?
   createdAt   DateTime @default(now())
   actor       User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+}
+
+model FeatureRequest {
+  id         String   @id @default(cuid())
+  requestId  String   @unique
+  actorId    String?
+  source     String
+  title      String
+  problem    String
+  impact     String
+  name       String?
+  email      String?
+  metadataJson Json?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([source])
 }

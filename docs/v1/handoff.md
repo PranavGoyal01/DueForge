@@ -1,6 +1,6 @@
 # DueForge v1 Handoff
 
-Last updated: 2026-03-19
+Last updated: 2026-03-22
 
 ## Current Product State
 
@@ -88,12 +88,42 @@ Last updated: 2026-03-19
 - Baseline observability + error boundary coverage shipped via `src/lib/observability.ts`, `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/(dashboard)/error.tsx`, and request-id API error handling in schedule/check-in routes.
 - Activation + retention telemetry instrumentation shipped via `src/lib/telemetry/events.ts` and auth/task/commitment/proof endpoints (`auth.registered`, `auth.login.succeeded/failed`, `auth.email.verified`, `activation.*`, `retention.*`).
 - Cron validation + tuning support shipped in job routes with `runId`, `durationMs`, and dry-run/manual knobs (`/api/jobs/drift-scan?dryRun=1&lookbackHours=12&horizonHours=24&duplicateWindowHours=12&limit=200`, `/api/jobs/nudges/dispatch?dryRun=1&limit=200`) plus settings ops panel dry-run actions.
+- Founder-facing feature inbox shipped at `/feature-requests` with dashboard nav and settings quick action.
+- Durable feature-request persistence now stores both authenticated and anonymous submissions in Prisma `FeatureRequest`, and `/feature-requests` renders a unified queue with legacy event fallback.
+- Pilot ops manual shipped: `docs/v1/pilot-operations.md` (tester script, bug template, triage SLA, and telemetry baseline runbook).
 
 ## Highest-Priority Next Work
 
-1. Add founder-facing in-app feature request inbox (optional if email inbox remains sufficient).
-2. Run launch checklist and pilot feedback loop.
-3. Verify baseline funnel and cron telemetry after first pilot cohort.
+1. Run launch checklist and pilot feedback loop.
+2. Verify baseline funnel and cron telemetry after first pilot cohort.
+3. Define week-1 pilot go/no-go thresholds from baseline metrics.
+
+## Pre-Tester Checklist (Blocking)
+
+1. Production configuration:
+    - Verify required env vars are present in Vercel (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `CRON_SECRET`, `APP_BASE_URL`, SMTP, Google OAuth).
+    - Confirm dedicated calendar configuration and callback URLs are correct.
+2. User journey validation:
+    - Validate account flows in production: register, verify email, login, forgot/reset password.
+    - Validate execution loop: quick capture -> commit -> proof -> check-in update.
+3. Calendar and schedule validation:
+    - Validate connect -> suggest -> apply -> reconcile on real calendars.
+    - Confirm schedule apply/reconcile error handling includes request IDs for support triage.
+4. Cron and nudge validation:
+    - Run dry-run checks from `/settings` for both drift scan and nudge dispatch.
+    - Run one controlled live dispatch window and inspect `runId`/`durationMs` telemetry and reminder volume.
+5. Feedback and support readiness:
+    - Ensure founder inbox (`/feature-requests`) is monitored daily.
+    - Confirm anonymous and authenticated submissions are visible together in founder inbox.
+    - Use tester script, bug template, and SLA policy docs during onboarding and triage.
+
+## Evidence To Capture Before Invites
+
+- Screenshot or log snippet for each critical flow pass in production.
+- Cron run outputs including `runId`, `mode`, `sent/failed`, and duration.
+- Telemetry spot-check across `auth.*`, `activation.*`, `retention.*`, and cron events.
+- Named owner and SLA for bug triage during tester week 1.
+- Follow `docs/v1/pilot-operations.md` after cohort start for day-1/day-7 baseline verification.
 
 ## Next-Agent Starter Tasks
 
@@ -109,6 +139,7 @@ npm run db:generate
 npm run lint
 npm run build
 npm run dev
+npm run pilot:cron-check
 ```
 
 ## Recommended First Reads For New Session

@@ -31,12 +31,35 @@
 - Baseline observability + error boundary coverage shipped with global/app/dashboard boundaries and request-id error reporting in key schedule/check-in APIs.
 - Activation + retention telemetry instrumentation shipped across auth and lifecycle milestones (`auth.registered`, `auth.login.succeeded/failed`, `auth.email.verified`, task/commitment/proof activation markers, and task/commitment retention views).
 - Cron validation + tuning controls shipped for drift scan and nudge dispatch with `runId`, `durationMs`, bounded query params (`limit`, `lookbackHours`, `horizonHours`, `duplicateWindowHours`), and `dryRun=1` support from settings ops panel.
+- Founder-facing feature request inbox shipped at `/feature-requests` with dashboard navigation and settings quick-link for triage.
+- Durable feature request persistence shipped for both authenticated and anonymous submissions via Prisma `FeatureRequest`, with founder inbox updated to a unified triage queue and legacy event fallback.
 
 ## Active Slices
 
-- `founder-loop`: add in-app feature-request inbox view for triage workflow.
 - `launch-readiness`: run launch checklist and pilot feedback loop.
 - `post-pilot-telemetry`: verify baseline funnel and cron telemetry after first pilot cohort.
+- `pilot-metrics-gates`: define week-1 go/no-go thresholds from first cohort baselines.
+
+## Definition Of Ready For Testers
+
+All items below should be complete before inviting external testers.
+
+- [ ] Product reliability: `npm run lint`, `npm run typecheck`, and `npm run build` pass on `main`.
+- [ ] Product reliability: production smoke flow passes (login -> quick capture -> commit -> proof -> check-in update).
+- [ ] Integration reliability: Google Calendar flow passes in production (connect, suggest, apply, reconcile).
+- [ ] Integration reliability: cron jobs validated using dry-run and controlled live run with expected telemetry output.
+- [ ] Feedback capture: authenticated feature requests are visible in `/feature-requests` inbox.
+- [x] Feedback capture: anonymous feature requests are durably persisted and visible in triage view.
+- [x] Pilot operations: tester script and issue reporting instructions are published.
+- [x] Pilot operations: triage owner and response SLA are defined for tester-reported bugs.
+- [ ] Metrics: activation baseline events verified (`auth.*`, `activation.*`, `retention.*`).
+- [ ] Metrics: week-1 pilot thresholds agreed (activation conversion, proof attachment rate, scheduling adoption, blocker bug ceiling).
+
+## Launch Artifacts To Prepare
+
+- Pilot operations manual (tester script, bug template, triage SLA, and telemetry baseline runbook) -> `docs/v1/pilot-operations.md`.
+- Daily triage board for tester bugs and feature requests.
+- End-of-week pilot summary template with go/no-go recommendation.
 
 ## Proposed Folder Topology
 

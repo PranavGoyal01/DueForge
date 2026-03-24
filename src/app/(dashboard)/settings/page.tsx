@@ -13,13 +13,7 @@ function formatDate(value: Date | null) {
 		return "Not available";
 	}
 
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	}).format(value);
+	return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }).format(value);
 }
 
 export default async function SettingsPage() {
@@ -28,42 +22,9 @@ export default async function SettingsPage() {
 		redirect("/login");
 	}
 
-	const [connection, lastScheduledCheckIn, openCommitments] = await Promise.all([
-		prisma.calendarConnection.findUnique({
-			where: {
-				userId_provider: {
-					userId: user.id,
-					provider: "google",
-				},
-			},
-		}),
-		prisma.checkIn.findFirst({
-			where: {
-				relationship: {
-					userId: user.id,
-				},
-			},
-			orderBy: {
-				scheduledAt: "desc",
-			},
-		}),
-		prisma.commitment.count({
-			where: {
-				committedById: user.id,
-				status: "COMMITTED",
-			},
-		}),
-	]);
+	const [connection, lastScheduledCheckIn, openCommitments] = await Promise.all([prisma.calendarConnection.findUnique({ where: { userId_provider: { userId: user.id, provider: "google" } } }), prisma.checkIn.findFirst({ where: { relationship: { userId: user.id } }, orderBy: { scheduledAt: "desc" } }), prisma.commitment.count({ where: { committedById: user.id, status: "COMMITTED" } })]);
 
-	const envChecks = {
-		authSecret: (process.env.AUTH_SECRET ?? "").length >= 24,
-		databaseUrl: Boolean(process.env.DATABASE_URL),
-		directUrl: Boolean(process.env.DIRECT_URL),
-		cronSecret: (process.env.CRON_SECRET ?? "").length >= 16,
-		smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM_EMAIL),
-		googleOauth: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI),
-		featureRequestRecipient: Boolean(process.env.FEATURE_REQUEST_RECIPIENT),
-	};
+	const envChecks = { authSecret: (process.env.AUTH_SECRET ?? "").length >= 24, databaseUrl: Boolean(process.env.DATABASE_URL), directUrl: Boolean(process.env.DIRECT_URL), cronSecret: (process.env.CRON_SECRET ?? "").length >= 16, smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM_EMAIL), googleOauth: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REDIRECT_URI), featureRequestRecipient: Boolean(process.env.FEATURE_REQUEST_RECIPIENT) };
 
 	const userTestingReady = envChecks.authSecret && envChecks.databaseUrl && envChecks.smtp;
 
@@ -155,6 +116,9 @@ export default async function SettingsPage() {
 							</Link>
 							<Link href='/checkins' className='inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted'>
 								Open Check-Ins
+							</Link>
+							<Link href='/feature-requests' className='inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-muted'>
+								Feature Inbox
 							</Link>
 						</div>
 					</CardContent>

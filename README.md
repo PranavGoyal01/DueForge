@@ -24,6 +24,10 @@ Read these in order:
 3. `docs/v1/implementation-plan.md`
 4. `docs/v1/vercel-supabase-setup.md`
 
+Pilot operations docs:
+
+- `docs/v1/pilot-operations.md`
+
 ## Local setup
 
 1. Install dependencies:

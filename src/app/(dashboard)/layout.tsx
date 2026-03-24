@@ -6,6 +6,7 @@ const navItems = [
 	{ href: "/commitments", label: "Commitments" },
 	{ href: "/checkins", label: "Check-Ins" },
 	{ href: "/schedule", label: "Schedule" },
+	{ href: "/feature-requests", label: "Feature Requests" },
 	{ href: "/settings", label: "Settings" },
 ];
 

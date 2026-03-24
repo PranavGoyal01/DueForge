@@ -30,18 +30,29 @@
 - [x] Add event telemetry for activation and retention funnels.
 - [ ] Run launch checklist and pilot feedback loop.
 
+## Pre-Tester Blocking Checklist
+
+- [ ] Confirm production environment variables in Vercel are complete and valid (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `CRON_SECRET`, `APP_BASE_URL`, SMTP, Google OAuth).
+- [ ] Verify auth account flows in production (`register`, `verify-email`, `login`, `forgot-password`, `reset-password`).
+- [ ] Verify Google Calendar happy path end-to-end (connect -> suggest -> apply -> reconcile) for one real user account.
+- [ ] Run cron dry-runs and one controlled live run (`drift-scan`, `nudges/dispatch`) and verify expected `runId` telemetry without reminder duplication spikes.
+- [x] Confirm feature request triage loop is operational in-app (`/feature-requests`) and inbox handling owner/SLA is defined.
+- [x] Persist anonymous feature requests into durable storage (not logs-only) so tester feedback is fully captured.
+- [x] Publish tester script and feedback form template for pilot participants.
+- [x] Define pilot go/no-go thresholds for first week (activation, proof rate, scheduler adoption, critical bug budget).
+
 ## Growth + Landing (In Progress)
 
 - [x] Launch public hero landing at `/`.
 - [x] Add live demo mode at `/demo`.
 - [x] Add request-a-feature form with `/api/feature-requests` endpoint.
-- [ ] Add feature request admin inbox view in-app for founder workflow.
+- [x] Add feature request admin inbox view in-app for founder workflow.
 
 ## Next 3 Execution Slices
 
-1. Add feature request admin inbox view in-app for founder workflow.
-2. Run launch checklist and pilot feedback loop.
-3. Verify launch telemetry baselines after first pilot cohort.
+1. Execute launch checklist and pilot onboarding script.
+2. Verify telemetry baselines after first pilot cohort and tune cron windows.
+3. Define pilot go/no-go thresholds after baseline telemetry collection.
 
 ## Excluded from v1
 
