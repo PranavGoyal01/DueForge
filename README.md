@@ -20,13 +20,13 @@ Execution-first accountability platform focused on follow-through, commitments, 
 Read these in order:
 
 1. `docs/v1/handoff.md`
-2. `docs/v1/backlog.md`
-3. `docs/v1/implementation-plan.md`
-4. `docs/v1/vercel-supabase-setup.md`
+2. `docs/v1/pilot-operations.md`
+3. `docs/v1/vercel-supabase-setup.md`
 
-Pilot operations docs:
+Planning docs:
 
-- `docs/v1/pilot-operations.md`
+-   `docs/v1/backlog.md`
+-   `docs/v1/implementation-plan.md`
 
 ## Local setup
 

@@ -1,11 +1,9 @@
+import { loadLocalEnv } from "./load-env.mjs";
+
+loadLocalEnv();
+
 function parseArgs(argv) {
-	const args = {
-		baseUrl: process.env.APP_BASE_URL ?? "",
-		cronSecret: process.env.CRON_SECRET ?? "",
-		live: false,
-		driftQuery: "dryRun=1&lookbackHours=12&horizonHours=24&duplicateWindowHours=12&limit=200",
-		nudgeQuery: "dryRun=1&limit=200",
-	};
+	const args = { baseUrl: process.env.APP_BASE_URL ?? "", cronSecret: process.env.CRON_SECRET ?? "", live: false, driftQuery: "dryRun=1&lookbackHours=12&horizonHours=24&duplicateWindowHours=12&limit=200", nudgeQuery: "dryRun=1&limit=200" };
 
 	for (let i = 2; i < argv.length; i += 1) {
 		const token = argv[i];
@@ -53,12 +51,7 @@ function printSummary(label, body) {
 }
 
 async function invokeJob(baseUrl, cronSecret, pathWithQuery) {
-	const response = await fetch(`${baseUrl}${pathWithQuery}`, {
-		method: "POST",
-		headers: {
-			Authorization: `Bearer ${cronSecret}`,
-		},
-	});
+	const response = await fetch(`${baseUrl}${pathWithQuery}`, { method: "POST", headers: { Authorization: `Bearer ${cronSecret}` } });
 
 	const body = await response.json().catch(() => ({}));
 	return { ok: response.ok, status: response.status, body };

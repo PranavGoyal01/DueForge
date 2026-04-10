@@ -1,151 +1,57 @@
 # DueForge v1 Handoff
 
-Last updated: 2026-03-22
+Last updated: 2026-03-24
 
-## Current Product State
+## Current Status
 
-- Public hero landing is live at `/`.
-- Live demo mode is live at `/demo`.
-- Authenticated product entry is `/today`.
-- Commitments hub is data-backed at `/commitments`.
-- Check-ins page is data-backed at `/checkins` including past history visibility.
-- Schedule page is data-backed at `/schedule` with apply diagnostics.
-- Settings diagnostics page is live at `/settings`.
-- Manual operations controls are available in `/settings` for drift scan + nudge dispatch.
-- Core dashboard surfaces now use shadcn-ui component patterns (`/today`, `/checkins`, `/schedule`, `/settings`).
-- Vercel cron schedule is configured via `vercel.json` for drift scan + nudge dispatch.
-- Cron cadence is Hobby-safe daily execution (`0 1 * * *` drift scan, `0 3 * * *` dispatch).
-- Feature request intake is live at `/api/feature-requests` and can forward to `FEATURE_REQUEST_RECIPIENT`.
+-   Tester readiness: ready for pilot invites.
+-   Production deployment: healthy on `dueforge.com`.
+-   Core loops validated in production: auth, capture, commitment, proof, check-ins, cron jobs.
+-   Remaining caution: run one manual browser pass of Google OAuth callback + apply/reconcile before increasing tester volume.
 
-## Critical Configuration Decisions
+## Product Surface
 
-- Prisma runtime traffic: `DATABASE_URL` (Supabase transaction pooler, `:6543`).
-- Prisma schema operations (`db:push`/migrate): `DIRECT_URL` (Supabase session pooler, `:5432`).
-- Avoid direct DB host path for local commands if it hangs or requires paid IPv4 add-on.
+-   Public: `/`, `/demo`, `/login`, `/forgot-password`, `/reset-password`
+-   Authenticated: `/today`, `/commitments`, `/checkins`, `/schedule`, `/settings`, `/feature-requests`
+-   Operations APIs: `/api/jobs/drift-scan`, `/api/jobs/nudges/dispatch`
 
-## Environment Variables You Must Have
+## Required Environment Variables
 
-- `DATABASE_URL`
-- `DIRECT_URL`
-- `AUTH_SECRET`
-- `CRON_SECRET`
-- `APP_BASE_URL`
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `SMTP_FROM_EMAIL`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `GOOGLE_REDIRECT_URI`
-- `DUEFORGE_DEDICATED_CALENDAR_NAME`
-- Optional: `FEATURE_REQUEST_RECIPIENT`
+-   `DATABASE_URL` (Supabase transaction pooler `:6543`)
+-   `DIRECT_URL` (Supabase session pooler `:5432`)
+-   `AUTH_SECRET`
+-   `CRON_SECRET`
+-   `APP_BASE_URL`
+-   `SMTP_HOST`
+-   `SMTP_PORT`
+-   `SMTP_USER`
+-   `SMTP_PASS`
+-   `SMTP_FROM_EMAIL`
+-   `GOOGLE_CLIENT_ID`
+-   `GOOGLE_CLIENT_SECRET`
+-   `GOOGLE_REDIRECT_URI`
+-   `DUEFORGE_DEDICATED_CALENDAR_NAME`
+-   Optional: `FEATURE_REQUEST_RECIPIENT`
 
-## CI + Deployment Gates
+## Quality Gates
 
-- GitHub Actions `CI / quality-gate` is the primary required check.
-- Workflow includes: `npm ci`, `lint`, `typecheck`, `db:generate`, `build`.
-- CI uses non-secret placeholder env vars in workflow job context so build-time env validation passes outside Vercel.
-- Optional PR security guard: `Dependency Review / dependency-review`.
-- Vercel deployment check status notifications are emitted from workflows as:
-    - `Vercel - dueforge: quality-gate`
-    - `Vercel - dueforge: dependency-review`
+-   `npm run lint`
+-   `npm run typecheck`
+-   `npm run build`
+-   `npm run deploy:check`
+-   `npm run pilot:cron-check`
 
-## What Was Completed Recently
+## Operations Notes
 
-- Landing + dashboard route split (`/` vs `/today`).
-- Supabase pooler dual-url strategy documented and implemented.
-- Shared request contract wiring across key API routes.
-- Demo feature request form + API route + telemetry + optional email forwarding.
-- Commitments page upgraded from placeholder to real data view.
-- Check-ins page upgraded from placeholder to real list/create + past history view.
-- Schedule page upgraded from placeholder to real planner + applied-block diagnostics.
-- Settings page upgraded from placeholder to user-testing diagnostics checklist.
-- Drift-scan + nudge-dispatch API jobs are live (`/api/jobs/drift-scan`, `/api/jobs/nudges/dispatch`).
-- Job routes accept secure cron bearer auth (`CRON_SECRET`) and support Vercel cron GET invocations.
-- shadcn/ui initialized (Tailwind v4 compatible) and reusable primitives added.
-- Dashboard UI migrated to shadcn patterns:
-    - `src/app/(dashboard)/today/page.tsx`
-    - `src/app/(dashboard)/checkins/page.tsx`
-    - `src/app/(dashboard)/schedule/page.tsx`
-    - `src/app/(dashboard)/settings/page.tsx`
-    - `src/components/QuickCaptureForm.tsx`
-    - `src/components/CheckInPanel.tsx`
-    - `src/components/CommitmentFeed.tsx`
-    - `src/components/SchedulePlanner.tsx`
-    - `src/components/dashboard/OpsRunPanel.tsx`
-- Shared dashboard building blocks added:
-    - `src/components/dashboard/MetricCard.tsx`
-    - `src/components/dashboard/SectionHeader.tsx`
-- Structured check-in outcome capture/edit shipped via `src/components/CheckInHistoryPanel.tsx`, `src/app/api/checkins/[id]/route.ts`, `src/lib/domain/contracts.ts`, and `src/app/(dashboard)/checkins/page.tsx`.
-- Per-block schedule apply diagnostics and retry hooks shipped via `src/app/api/schedule/apply/route.ts`, `src/components/SchedulePlanner.tsx`, and `src/lib/domain/contracts.ts`.
-- Schedule rationale/confidence persistence shipped via `src/app/api/schedule/suggest/route.ts` and rendered in `src/components/SchedulePlanner.tsx`.
-- Nudge + check-in funnel telemetry instrumentation shipped via `src/lib/telemetry/events.ts`, `src/app/api/checkins/route.ts`, `src/app/api/checkins/[id]/route.ts`, and `src/app/api/jobs/nudges/dispatch/route.ts`.
-- Schedule reconciliation shipped via `src/app/api/schedule/reconcile/route.ts` and `src/components/SchedulePlanner.tsx` with conflict diagnostics.
-- In-app + email nudge templates shipped via `src/lib/nudges.ts` and `src/app/api/jobs/nudges/dispatch/route.ts`.
-- Accountability metrics dashboard shipped on `src/app/(dashboard)/today/page.tsx` (on-time completion, proof rate, proof streaks).
-- Quick-capture parser coverage shipped via `src/lib/capture.ts` for richer natural due-date and time phrases.
-- Baseline observability + error boundary coverage shipped via `src/lib/observability.ts`, `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/(dashboard)/error.tsx`, and request-id API error handling in schedule/check-in routes.
-- Activation + retention telemetry instrumentation shipped via `src/lib/telemetry/events.ts` and auth/task/commitment/proof endpoints (`auth.registered`, `auth.login.succeeded/failed`, `auth.email.verified`, `activation.*`, `retention.*`).
-- Cron validation + tuning support shipped in job routes with `runId`, `durationMs`, and dry-run/manual knobs (`/api/jobs/drift-scan?dryRun=1&lookbackHours=12&horizonHours=24&duplicateWindowHours=12&limit=200`, `/api/jobs/nudges/dispatch?dryRun=1&limit=200`) plus settings ops panel dry-run actions.
-- Founder-facing feature inbox shipped at `/feature-requests` with dashboard nav and settings quick action.
-- Durable feature-request persistence now stores both authenticated and anonymous submissions in Prisma `FeatureRequest`, and `/feature-requests` renders a unified queue with legacy event fallback.
-- Pilot ops manual shipped: `docs/v1/pilot-operations.md` (tester script, bug template, triage SLA, and telemetry baseline runbook).
+-   Cron cadence in `vercel.json` is daily and Hobby-safe.
+-   `0 1 * * *` -> drift scan
+-   `0 3 * * *` -> nudge dispatch
+-   Founder inbox is in `/feature-requests` and should be reviewed daily during pilot.
+-   Use `docs/v1/pilot-operations.md` as the execution runbook.
 
-## Highest-Priority Next Work
+## Canonical Docs
 
-1. Run launch checklist and pilot feedback loop.
-2. Verify baseline funnel and cron telemetry after first pilot cohort.
-3. Define week-1 pilot go/no-go thresholds from baseline metrics.
-
-## Pre-Tester Checklist (Blocking)
-
-1. Production configuration:
-    - Verify required env vars are present in Vercel (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `CRON_SECRET`, `APP_BASE_URL`, SMTP, Google OAuth).
-    - Confirm dedicated calendar configuration and callback URLs are correct.
-2. User journey validation:
-    - Validate account flows in production: register, verify email, login, forgot/reset password.
-    - Validate execution loop: quick capture -> commit -> proof -> check-in update.
-3. Calendar and schedule validation:
-    - Validate connect -> suggest -> apply -> reconcile on real calendars.
-    - Confirm schedule apply/reconcile error handling includes request IDs for support triage.
-4. Cron and nudge validation:
-    - Run dry-run checks from `/settings` for both drift scan and nudge dispatch.
-    - Run one controlled live dispatch window and inspect `runId`/`durationMs` telemetry and reminder volume.
-5. Feedback and support readiness:
-    - Ensure founder inbox (`/feature-requests`) is monitored daily.
-    - Confirm anonymous and authenticated submissions are visible together in founder inbox.
-    - Use tester script, bug template, and SLA policy docs during onboarding and triage.
-
-## Evidence To Capture Before Invites
-
-- Screenshot or log snippet for each critical flow pass in production.
-- Cron run outputs including `runId`, `mode`, `sent/failed`, and duration.
-- Telemetry spot-check across `auth.*`, `activation.*`, `retention.*`, and cron events.
-- Named owner and SLA for bug triage during tester week 1.
-- Follow `docs/v1/pilot-operations.md` after cohort start for day-1/day-7 baseline verification.
-
-## Next-Agent Starter Tasks
-
-1. Run baseline health checks: `npm run lint`, `npm run typecheck`, `npm run build`.
-2. Continue from the first unchecked item in `docs/v1/backlog.md` under Milestone 2/3.
-3. If implementing new dashboard surfaces, reuse `MetricCard` and `SectionHeader` patterns before introducing new bespoke wrappers.
-
-## Fast Restart Commands
-
-```bash
-npm install
-npm run db:generate
-npm run lint
-npm run build
-npm run dev
-npm run pilot:cron-check
-```
-
-## Recommended First Reads For New Session
-
-1. `docs/v1/handoff.md`
-2. `docs/v1/backlog.md`
-3. `docs/v1/implementation-plan.md`
-4. `docs/v1/vercel-supabase-setup.md`
-5. `README.md`
+-   Product and operations state: `docs/v1/handoff.md`
+-   Pilot execution runbook: `docs/v1/pilot-operations.md`
+-   Infra setup and deployment: `docs/v1/vercel-supabase-setup.md`
+-   Product direction: `docs/v1/strategy.md`

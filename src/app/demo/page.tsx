@@ -9,13 +9,13 @@ const demoRows = [
 
 export default function DemoPage() {
 	return (
-		<main className='min-h-screen px-6 py-10 text-foreground md:px-10'>
+		<main className='df-landing min-h-screen px-6 py-10 text-foreground md:px-10'>
 			<div className='mx-auto w-full max-w-6xl'>
 				<header className='mb-8 flex flex-wrap items-center justify-between gap-3'>
 					<div>
 						<p className='text-xs uppercase tracking-[0.25em] text-amber-300/90'>DUEFORGE DEMO</p>
 						<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Live Demo Mode</h1>
-						<p className='mt-2 text-sm df-subtle'>This is synthetic data showing the execution loop and accountability surfaces.</p>
+						<p className='mt-2 text-base df-subtle'>Synthetic data preview of the execution loop, commitment signals, and accountability surfaces.</p>
 					</div>
 					<div className='flex items-center gap-2'>
 						<Link href='/' className='df-btn-secondary px-3 py-2 text-xs'>
@@ -49,15 +49,15 @@ export default function DemoPage() {
 								<div className='flex flex-wrap items-center justify-between gap-3'>
 									<div>
 										<p className='text-sm font-medium text-white'>{row.title}</p>
-										<p className='mt-1 text-xs df-subtle'>Due {row.due}</p>
+										<p className='mt-1 text-sm df-subtle'>Due {row.due}</p>
 									</div>
 									<div className='text-right'>
 										<p className='text-xs uppercase text-amber-300/85'>Proof</p>
-										<p className='text-xs text-white'>{row.proof}</p>
+										<p className='text-sm text-white'>{row.proof}</p>
 									</div>
 									<div className='text-right'>
 										<p className='text-xs uppercase text-amber-300/85'>Risk</p>
-										<p className='text-xs text-white'>{row.risk}</p>
+										<p className='text-sm text-white'>{row.risk}</p>
 									</div>
 								</div>
 							</article>
