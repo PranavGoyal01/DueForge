@@ -1,4 +1,8 @@
+import { loadLocalEnv } from "./load-env.mjs";
+
 const checks = [];
+
+loadLocalEnv();
 
 function addCheck(name, pass, details) {
 	checks.push({ name, pass, details });

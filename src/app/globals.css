@@ -87,38 +87,43 @@
 
 body {
 	font-family: var(--font-geist-sans), sans-serif;
+	line-height: 1.5;
+}
+
+.df-landing {
+	background: radial-gradient(circle at 15% -10%, rgb(245 165 36 / 11%), transparent 35%), radial-gradient(circle at 84% 12%, rgb(66 195 185 / 9%), transparent 30%), radial-gradient(circle at 55% 100%, rgb(54 96 196 / 9%), transparent 38%), linear-gradient(180deg, var(--df-bg-1), var(--df-bg-0));
 }
 
 .df-panel {
 	border: 1px solid color-mix(in srgb, var(--border) 80%, #000 20%);
-	background: color-mix(in srgb, var(--surface) 78%, #000 22%);
+	background: color-mix(in srgb, var(--surface) 88%, #000 12%);
 	border-radius: 1rem;
 }
 
 .df-card {
 	border: 1px solid color-mix(in srgb, var(--border) 70%, #000 30%);
-	background: color-mix(in srgb, #000 80%, var(--surface) 20%);
+	background: color-mix(in srgb, #000 64%, var(--surface) 36%);
 	border-radius: 0.75rem;
 }
 
 .df-muted {
-	color: color-mix(in srgb, var(--foreground) 68%, #000 32%);
+	color: color-mix(in srgb, var(--df-text-1) 90%, #fff 10%);
 }
 
 .df-subtle {
-	color: color-mix(in srgb, var(--foreground) 52%, #000 48%);
+	color: color-mix(in srgb, var(--df-text-1) 82%, #fff 18%);
 }
 
 .df-input {
 	border: 1px solid color-mix(in srgb, var(--border) 75%, #000 25%);
-	background: color-mix(in srgb, #000 82%, var(--surface) 18%);
+	background: color-mix(in srgb, #000 58%, var(--surface) 42%);
 	color: var(--foreground);
 	border-radius: 0.65rem;
 	outline: none;
 }
 
 .df-input::placeholder {
-	color: color-mix(in srgb, var(--foreground) 40%, #000 60%);
+	color: color-mix(in srgb, var(--df-text-1) 72%, #000 28%);
 }
 
 .df-input:focus {
@@ -132,34 +137,100 @@ body {
 	border: 1px solid color-mix(in srgb, var(--accent) 70%, #000 30%);
 	border-radius: 0.65rem;
 	font-weight: 600;
+	transition:
+		transform 180ms ease,
+		box-shadow 180ms ease,
+		filter 180ms ease;
 }
 
 .df-btn-secondary {
 	background: color-mix(in srgb, var(--surface) 70%, #000 30%);
-	color: var(--foreground);
+	color: var(--df-text-0);
 	border: 1px solid color-mix(in srgb, var(--border) 80%, #000 20%);
 	border-radius: 0.65rem;
 	font-weight: 500;
+	transition:
+		transform 180ms ease,
+		border-color 180ms ease,
+		background-color 180ms ease;
+}
+
+.df-btn-primary:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.04);
+	box-shadow: 0 10px 20px rgb(245 165 36 / 20%);
+}
+
+.df-btn-secondary:hover {
+	transform: translateY(-1px);
+	border-color: color-mix(in srgb, var(--accent) 35%, var(--border) 65%);
+	background: color-mix(in srgb, var(--surface) 55%, #000 45%);
+}
+
+.df-fade-in {
+	animation: dfFadeIn 480ms ease-out both;
+}
+
+.df-staggered {
+	animation: dfFadeUp 620ms ease-out both;
+}
+
+.df-delay-1 {
+	animation-delay: 70ms;
+}
+
+.df-delay-2 {
+	animation-delay: 140ms;
+}
+
+.df-delay-3 {
+	animation-delay: 210ms;
+}
+
+.df-delay-4 {
+	animation-delay: 280ms;
+}
+
+@keyframes dfFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes dfFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .dark {
-	--background: oklch(0.145 0 0);
+	--background: oklch(0.19 0 0);
 	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
+	--card: oklch(0.245 0 0);
 	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
+	--popover: oklch(0.245 0 0);
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.87 0.00 0);
+	--primary: oklch(0.87 0 0);
 	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
+	--secondary: oklch(0.31 0 0);
 	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
+	--muted: oklch(0.31 0 0);
+	--muted-foreground: oklch(0.82 0 0);
 	--accent: oklch(0.371 0 0);
 	--accent-foreground: oklch(0.985 0 0);
 	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 15%);
+	--border: oklch(1 0 0 / 18%);
+	--input: oklch(1 0 0 / 22%);
 	--ring: oklch(0.556 0 0);
 	--chart-1: oklch(0.809 0.105 251.813);
 	--chart-2: oklch(0.623 0.214 259.815);
@@ -177,13 +248,13 @@ body {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+	* {
+		@apply border-border outline-ring/50;
 	}
-  body {
-    @apply bg-background text-foreground;
+	body {
+		@apply bg-background text-foreground;
 	}
-  html {
-    @apply font-sans;
+	html {
+		@apply font-sans;
 	}
 }
