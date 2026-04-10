@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans, Sora } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+	variable: "--font-plus-jakarta",
+	weight: ["400", "500", "600", "700"],
 	subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
+const sora = Sora({
+	variable: "--font-sora",
+	weight: ["400", "500", "600", "700"],
+	subsets: ["latin"],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+	variable: "--font-jetbrains-mono",
 	subsets: ["latin"],
 });
 
@@ -26,7 +33,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='en'>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+			<body className={`${plusJakarta.variable} ${sora.variable} ${jetBrainsMono.variable} antialiased`}>{children}</body>
 			<SpeedInsights />
 			<Analytics />
 		</html>

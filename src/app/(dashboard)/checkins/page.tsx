@@ -85,12 +85,12 @@ export default async function CheckInsPage() {
 	]);
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
 				<header className='space-y-2'>
-					<p className='text-xs uppercase tracking-widest text-muted-foreground'>CHECK-INS</p>
-					<h1 className='text-3xl font-semibold tracking-tight'>Accountability Check-In Control</h1>
-					<p className='text-sm text-muted-foreground'>Schedule the next two weeks, track cadence, and keep partner alignment visible.</p>
+					<p className='df-page-kicker'>Check-ins</p>
+					<h1 className='df-page-title'>Accountability Check-In Control</h1>
+					<p className='df-page-lead'>Schedule the next two weeks, track cadence, and keep partner alignment visible.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-4'>

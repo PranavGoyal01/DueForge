@@ -54,22 +54,22 @@ export default async function CommitmentsPage() {
 	const serializedCommitments = serializeCommitments(commitments);
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl'>
 				<header className='mb-6'>
-					<p className='text-xs uppercase tracking-widest df-subtle'>DUEFORGE</p>
-					<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Commitments Hub</h1>
-					<p className='mt-2 text-sm df-subtle'>Monitor commitment health, attach proof, and close execution loops.</p>
+					<p className='df-page-kicker'>Commitments</p>
+					<h1 className='df-page-title'>Commitments Hub</h1>
+					<p className='df-page-lead'>Monitor commitment health, attach proof, and close execution loops without losing context.</p>
 				</header>
 
 				<section className='mb-6 grid gap-3 md:grid-cols-3'>
 					<article className='df-card px-4 py-3'>
 						<p className='text-xs uppercase tracking-wide df-subtle'>Open Commitments</p>
-						<p className='mt-1 text-2xl font-semibold text-white'>{openCount}</p>
+						<p className='mt-1 text-2xl font-semibold text-[var(--df-text-0)]'>{openCount}</p>
 					</article>
 					<article className='df-card px-4 py-3'>
 						<p className='text-xs uppercase tracking-wide df-subtle'>Completed</p>
-						<p className='mt-1 text-2xl font-semibold text-white'>{completedCount}</p>
+						<p className='mt-1 text-2xl font-semibold text-[var(--df-text-0)]'>{completedCount}</p>
 					</article>
 					<article className='df-card px-4 py-3'>
 						<p className='text-xs uppercase tracking-wide df-subtle'>At Risk</p>

@@ -29,12 +29,12 @@ export default async function SettingsPage() {
 	const userTestingReady = envChecks.authSecret && envChecks.databaseUrl && envChecks.smtp;
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
 				<header className='space-y-2'>
-					<p className='text-xs uppercase tracking-widest text-muted-foreground'>SETTINGS</p>
-					<h1 className='mt-2 text-3xl font-semibold tracking-tight'>System Diagnostics</h1>
-					<p className='mt-2 text-sm text-muted-foreground'>Use this page as your beta readiness checklist before user testing sessions.</p>
+					<p className='df-page-kicker'>Settings</p>
+					<h1 className='df-page-title'>System Diagnostics</h1>
+					<p className='df-page-lead'>Use this page as your beta readiness checklist before user testing sessions.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-3'>

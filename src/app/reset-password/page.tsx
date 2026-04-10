@@ -9,8 +9,25 @@ export default async function ResetPasswordPage() {
 	}
 
 	return (
-		<main className='flex min-h-screen items-center justify-center bg-background px-6 py-8 text-foreground'>
-			<ResetPasswordPanel />
+		<main className='df-auth-shell flex items-center justify-center text-foreground'>
+			<div className='df-auth-grid'>
+				<section className='df-auth-side'>
+					<div>
+						<p className='df-page-kicker'>Credential Update</p>
+						<h2>Set a stronger key for the next execution sprint.</h2>
+						<p className='mt-3'>Choose a new password and return to your command surface with continuity.</p>
+					</div>
+					<div className='df-auth-highlights'>
+						<p>Minimum 8 characters, ideally with mixed symbols.</p>
+						<p>Your reset token is validated server-side.</p>
+						<p>After update, log in and continue from Today.</p>
+					</div>
+				</section>
+
+				<div className='flex items-center justify-center'>
+					<ResetPasswordPanel />
+				</div>
+			</div>
 		</main>
 	);
 }

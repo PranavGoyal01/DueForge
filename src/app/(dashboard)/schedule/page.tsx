@@ -80,12 +80,12 @@ export default async function SchedulePage() {
 	}));
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
 				<header className='space-y-2'>
-					<p className='text-xs uppercase tracking-widest text-muted-foreground'>SCHEDULE</p>
-					<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Execution Scheduling Diagnostics</h1>
-					<p className='mt-2 text-sm text-muted-foreground'>Generate focused blocks, apply them to your dedicated calendar, and inspect recent scheduling writes.</p>
+					<p className='df-page-kicker'>Schedule</p>
+					<h1 className='df-page-title'>Execution Scheduling Diagnostics</h1>
+					<p className='df-page-lead'>Generate focused blocks, apply them to your dedicated calendar, and inspect recent scheduling writes.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-3'>

@@ -62,12 +62,12 @@ export default async function FeatureRequestsPage() {
 	const anonymousCount = parsed.length - authenticatedCount;
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl space-y-6'>
 				<header className='space-y-2'>
-					<p className='text-xs uppercase tracking-widest text-muted-foreground'>FOUNDER INBOX</p>
-					<h1 className='text-3xl font-semibold tracking-tight'>Feature Requests</h1>
-					<p className='text-sm text-muted-foreground'>Review user-submitted ideas captured from authenticated and anonymous request flows.</p>
+					<p className='df-page-kicker'>Founder Inbox</p>
+					<h1 className='df-page-title'>Feature Requests</h1>
+					<p className='df-page-lead'>Review user-submitted ideas captured from authenticated and anonymous request flows.</p>
 				</header>
 
 				<section className='grid gap-3 sm:grid-cols-3'>

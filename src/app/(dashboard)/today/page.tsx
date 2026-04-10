@@ -235,13 +235,13 @@ export default async function TodayPage() {
 	const streakStats = getStreakStats(proofSubmittedEvents.map((event) => event.createdAt));
 
 	return (
-		<main className='min-h-screen bg-background px-6 py-8 text-foreground md:px-10'>
+		<main className='df-app-page'>
 			<div className='mx-auto w-full max-w-6xl'>
 				<header className='mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between'>
 					<div>
-						<p className='text-xs uppercase tracking-widest text-muted-foreground'>DUEFORGE</p>
-						<h1 className='mt-2 text-3xl font-semibold tracking-tight'>Execution Command Center</h1>
-						<p className='mt-2 text-sm text-muted-foreground'>Turn commitments into scheduled, visible follow-through.</p>
+						<p className='df-page-kicker'>Command Surface</p>
+						<h1 className='df-page-title'>Execution Command Center</h1>
+						<p className='df-page-lead'>Turn commitments into scheduled, visible follow-through with fewer dropped loops.</p>
 					</div>
 					<div className='flex flex-wrap items-end gap-3'>
 						<GoogleCalendarConnectButton isConnected={googleConnection?.syncState === "connected"} />
