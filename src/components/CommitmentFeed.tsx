@@ -41,6 +41,7 @@ export function CommitmentFeed({ initialCommitments }: CommitmentFeedProps) {
 	const [draftByCommitmentId, setDraftByCommitmentId] = useState<Record<string, string>>({});
 	const [proofTypeByCommitmentId, setProofTypeByCommitmentId] = useState<Record<string, ProofTypeValue>>({});
 	const [completeByCommitmentId, setCompleteByCommitmentId] = useState<Record<string, boolean>>({});
+	const [deletingByCommitmentId, setDeletingByCommitmentId] = useState<Record<string, boolean>>({});
 	const [activeScope, setActiveScope] = useState<CommitmentScope>("week");
 	const [isLoadingScope, setIsLoadingScope] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
@@ -127,6 +128,34 @@ export function CommitmentFeed({ initialCommitments }: CommitmentFeedProps) {
 		});
 	};
 
+	const deleteCommitment = async (commitmentId: string) => {
+		setMessage(null);
+		setDeletingByCommitmentId((current) => ({ ...current, [commitmentId]: true }));
+
+		try {
+			const response = await fetch(`/api/commitments/${commitmentId}`, {
+				method: "DELETE",
+			});
+
+			if (response.status === 401) {
+				window.location.href = "/login";
+				return;
+			}
+
+			if (!response.ok) {
+				setMessage("Could not delete commitment.");
+				return;
+			}
+
+			setCommitments((current) => current.filter((item) => item.id !== commitmentId));
+			setMessage("Commitment deleted.");
+		} catch {
+			setMessage("Could not delete commitment.");
+		} finally {
+			setDeletingByCommitmentId((current) => ({ ...current, [commitmentId]: false }));
+		}
+	};
+
 	return (
 		<Card className='py-5'>
 			<CardHeader>
@@ -208,9 +237,14 @@ export function CommitmentFeed({ initialCommitments }: CommitmentFeedProps) {
 										/>
 										Mark completed
 									</label>
-									<Button type='button' size='sm' disabled={isPending} onClick={() => submitProof(commitment.id)}>
-										{isPending ? "Submitting..." : "Submit Proof"}
-									</Button>
+									<div className='flex items-center gap-2'>
+										<Button type='button' variant='destructive' size='sm' disabled={isPending || deletingByCommitmentId[commitment.id]} onClick={() => void deleteCommitment(commitment.id)}>
+											{deletingByCommitmentId[commitment.id] ? "Deleting..." : "Delete"}
+										</Button>
+										<Button type='button' size='sm' disabled={isPending || deletingByCommitmentId[commitment.id]} onClick={() => submitProof(commitment.id)}>
+											{isPending ? "Submitting..." : "Submit Proof"}
+										</Button>
+									</div>
 								</div>
 							</CardContent>
 						</Card>

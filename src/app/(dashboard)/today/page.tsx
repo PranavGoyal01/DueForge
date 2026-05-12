@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getSessionCookieName, getSessionUser } from "@/lib/auth";
 import { ensureRelationshipForUser } from "@/lib/bootstrap";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -118,6 +119,40 @@ async function commitToTask(userId: string, taskId: string) {
 			payloadJson: { taskId },
 		},
 	});
+
+	revalidatePath("/today");
+	revalidatePath("/commitments");
+}
+
+async function deleteTask(userId: string, taskId: string) {
+	"use server";
+
+	const existing = await prisma.task.findFirst({
+		where: {
+			id: taskId,
+			ownerId: userId,
+		},
+		select: { id: true, title: true },
+	});
+
+	if (!existing) {
+		return;
+	}
+
+	await prisma.task.delete({ where: { id: existing.id } });
+
+	await prisma.activityEvent.create({
+		data: {
+			actorId: userId,
+			entityType: "task",
+			entityId: existing.id,
+			eventType: "task.deleted",
+			payloadJson: { title: existing.title },
+		},
+	});
+
+	revalidatePath("/today");
+	revalidatePath("/commitments");
 }
 
 async function signOut() {
@@ -329,11 +364,18 @@ export default async function TodayPage() {
 												</Badge>
 											))}
 										</div>
-										<form className='mt-4' action={commitToTask.bind(null, user.id, task.id)}>
-											<Button type='submit' size='sm' disabled={committedTaskIds.has(task.id)}>
-												{committedTaskIds.has(task.id) ? "Committed" : "Commit Task"}
-											</Button>
-										</form>
+										<div className='mt-4 flex items-center gap-2'>
+											<form action={commitToTask.bind(null, user.id, task.id)}>
+												<Button type='submit' size='sm' disabled={committedTaskIds.has(task.id)}>
+													{committedTaskIds.has(task.id) ? "Committed" : "Commit Task"}
+												</Button>
+											</form>
+											<form action={deleteTask.bind(null, user.id, task.id)}>
+												<Button type='submit' size='sm' variant='destructive'>
+													Delete Task
+												</Button>
+											</form>
+										</div>
 									</CardContent>
 								</Card>
 							))

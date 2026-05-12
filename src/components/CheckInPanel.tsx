@@ -39,6 +39,7 @@ export function CheckInPanel() {
 	const [agenda, setAgenda] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [message, setMessage] = useState<string | null>(null);
 
 	const sortedCheckIns = useMemo(() => [...checkIns].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()), [checkIns]);
@@ -116,6 +117,34 @@ export function CheckInPanel() {
 		setMessage("Check-in scheduled.");
 	};
 
+	const remove = async (checkInId: string) => {
+		setDeletingId(checkInId);
+		setMessage(null);
+
+		try {
+			const response = await fetch(`/api/checkins/${checkInId}`, {
+				method: "DELETE",
+			});
+
+			if (response.status === 401) {
+				window.location.href = "/login";
+				return;
+			}
+
+			if (!response.ok) {
+				setMessage("Could not delete check-in.");
+				return;
+			}
+
+			setCheckIns((current) => current.filter((item) => item.id !== checkInId));
+			setMessage("Check-in deleted.");
+		} catch {
+			setMessage("Could not delete check-in.");
+		} finally {
+			setDeletingId(null);
+		}
+	};
+
 	return (
 		<Card className='py-5'>
 			<CardHeader>
@@ -168,7 +197,12 @@ export function CheckInPanel() {
 							<CardContent className='space-y-1'>
 								<div className='flex items-center justify-between gap-2'>
 									<p className='text-sm'>{formatDate(item.scheduledAt)}</p>
-									<Badge variant='outline'>{modeLabels[item.mode]}</Badge>
+									<div className='flex items-center gap-2'>
+										<Badge variant='outline'>{modeLabels[item.mode]}</Badge>
+										<Button type='button' size='xs' variant='destructive' disabled={deletingId === item.id} onClick={() => void remove(item.id)}>
+											{deletingId === item.id ? "Deleting..." : "Delete"}
+										</Button>
+									</div>
 								</div>
 								{item.agenda ? <p className='text-xs text-muted-foreground'>{item.agenda}</p> : null}
 							</CardContent>

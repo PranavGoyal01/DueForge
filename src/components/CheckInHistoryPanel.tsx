@@ -36,6 +36,7 @@ export function CheckInHistoryPanel({ initialItems }: CheckInHistoryPanelProps) 
 	const [draftOutcome, setDraftOutcome] = useState("");
 	const [draftNextCommitments, setDraftNextCommitments] = useState("");
 	const [savingId, setSavingId] = useState<string | null>(null);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [message, setMessage] = useState<string | null>(null);
 
 	const startEditing = (item: PastCheckInItem) => {
@@ -91,6 +92,37 @@ export function CheckInHistoryPanel({ initialItems }: CheckInHistoryPanelProps) 
 		setMessage("Outcome saved.");
 	};
 
+	const remove = async (itemId: string) => {
+		setDeletingId(itemId);
+		setMessage(null);
+
+		try {
+			const response = await fetch(`/api/checkins/${itemId}`, {
+				method: "DELETE",
+			});
+
+			if (response.status === 401) {
+				window.location.assign("/login");
+				return;
+			}
+
+			if (!response.ok) {
+				setMessage("Could not delete check-in. Try again.");
+				return;
+			}
+
+			setItems((current) => current.filter((entry) => entry.id !== itemId));
+			if (editingId === itemId) {
+				cancelEditing();
+			}
+			setMessage("Check-in deleted.");
+		} catch {
+			setMessage("Could not delete check-in. Try again.");
+		} finally {
+			setDeletingId(null);
+		}
+	};
+
 	return (
 		<Card className='py-5'>
 			<CardHeader>
@@ -122,9 +154,12 @@ export function CheckInHistoryPanel({ initialItems }: CheckInHistoryPanelProps) 
 										<>
 											{hasOutcome ? <p className='text-xs text-foreground/90'>Outcome: {item.outcome}</p> : <p className='text-xs text-amber-200/90'>No recorded outcome. This check-in did not close the loop.</p>}
 											{item.nextCommitments ? <p className='text-xs text-muted-foreground'>Next commitments: {item.nextCommitments}</p> : null}
-											<div>
+											<div className='flex items-center gap-2'>
 												<Button type='button' variant='ghost' size='sm' onClick={() => startEditing(item)}>
 													{hasOutcome ? "Edit Outcome" : "Add Outcome"}
+												</Button>
+												<Button type='button' variant='destructive' size='sm' disabled={deletingId === item.id} onClick={() => void remove(item.id)}>
+													{deletingId === item.id ? "Deleting..." : "Delete"}
 												</Button>
 											</div>
 										</>

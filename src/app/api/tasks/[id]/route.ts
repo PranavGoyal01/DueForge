@@ -62,3 +62,41 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 	return NextResponse.json({ task });
 }
+
+export async function DELETE(_request: Request, context: RouteContext) {
+	const user = await getSessionUser();
+	if (!user) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	const { id } = await context.params;
+
+	const existing = await prisma.task.findFirst({
+		where: {
+			id,
+			ownerId: user.id,
+		},
+		select: {
+			id: true,
+			title: true,
+		},
+	});
+
+	if (!existing) {
+		return NextResponse.json({ error: "Task not found" }, { status: 404 });
+	}
+
+	await prisma.task.delete({ where: { id: existing.id } });
+
+	await prisma.activityEvent.create({
+		data: {
+			actorId: user.id,
+			entityType: "task",
+			entityId: existing.id,
+			eventType: "task.deleted",
+			payloadJson: { title: existing.title },
+		},
+	});
+
+	return NextResponse.json({ success: true });
+}

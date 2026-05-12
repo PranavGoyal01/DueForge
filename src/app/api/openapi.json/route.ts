@@ -22,13 +22,21 @@ export async function GET() {
 				get: { summary: "List tasks" },
 				post: { summary: "Create task" },
 			},
-			"/api/tasks/{id}": { patch: { summary: "Update task" } },
+			"/api/tasks/{id}": {
+				patch: { summary: "Update task" },
+				delete: { summary: "Delete task" },
+			},
 			"/api/tasks/{id}/commit": { post: { summary: "Commit to task" } },
 			"/api/commitments": { get: { summary: "List commitments" } },
+			"/api/commitments/{id}": { delete: { summary: "Delete commitment" } },
 			"/api/commitments/{id}/proof": { post: { summary: "Submit proof" } },
 			"/api/checkins": {
 				get: { summary: "List upcoming check-ins" },
 				post: { summary: "Schedule check-in" },
+			},
+			"/api/checkins/{id}": {
+				patch: { summary: "Update check-in outcome" },
+				delete: { summary: "Delete check-in" },
 			},
 			"/api/integrations/google/connect": { post: { summary: "Initiate Google Calendar connect" } },
 			"/api/integrations/google/callback": {
